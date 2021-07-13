@@ -10,7 +10,7 @@ import {
 
 const optionShape = PropTypes.shape({
   name: PropTypes.node.isRequired,
-  value: PropTypes.any.isRequired,
+  value: PropTypes.any,
   icon: PropTypes.string,
 
   // Expects a color alias, not a color code
