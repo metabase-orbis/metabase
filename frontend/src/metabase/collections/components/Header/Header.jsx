@@ -24,10 +24,8 @@ export default function Header({
   return (
     <Flex align="center" py={3}>
       <Flex align="center">
-        <PageHeading className="text-wrap">
-          <ToggleMobileSidebarIcon onClick={handleToggleMobileSidebar} />
-          {collection.name}
-        </PageHeading>
+        <ToggleMobileSidebarIcon onClick={handleToggleMobileSidebar} />
+        <PageHeading className="text-wrap">{collection.name}</PageHeading>
         {collection.description && (
           <Tooltip tooltip={collection.description}>
             <Icon
