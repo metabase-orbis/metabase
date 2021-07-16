@@ -64,6 +64,7 @@ const AUTHORITY_LEVEL_REGULAR = {
 
 export const PLUGIN_COLLECTIONS = {
   formFields: [],
+  isRegularCollection: () => true,
   AUTHORITY_LEVEL: {
     [AUTHORITY_LEVEL_REGULAR.type]: AUTHORITY_LEVEL_REGULAR,
     regular: AUTHORITY_LEVEL_REGULAR, // just an alias

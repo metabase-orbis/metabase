@@ -12,6 +12,10 @@ import {
   OFFICIAL_COLLECTION,
 } from "./constants";
 
+PLUGIN_COLLECTIONS.isRegularCollection = collection =>
+  !collection.authority_level || // Root, personal collections don't have `authority_level`
+  collection.authority_level === REGULAR_COLLECTION.type;
+
 PLUGIN_COLLECTIONS.AUTHORITY_LEVEL = AUTHORITY_LEVELS;
 
 PLUGIN_COLLECTIONS.formFields = [
