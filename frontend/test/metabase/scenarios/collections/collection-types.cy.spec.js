@@ -1,6 +1,7 @@
 import {
   restore,
   modal,
+  sidebar,
   describeWithToken,
   describeWithoutToken,
 } from "__support__/e2e/cypress";
@@ -23,6 +24,7 @@ describeWithToken("collections types", () => {
     });
     cy.findByText("Official Collection Test").click();
     cy.findByTestId("official-collection-marker");
+    assertSidebarIcon("Official Collection Test", "badge");
 
     // Test can change regular collection to official
     cy.icon("pencil").click();
@@ -32,6 +34,7 @@ describeWithToken("collections types", () => {
       cy.button("Update").click();
     });
     cy.findByTestId("official-collection-marker").should("not.exist");
+    assertSidebarIcon("Official Collection Test", "folder");
 
     // Test can change regular collection to official
     cy.icon("pencil").click();
@@ -41,6 +44,7 @@ describeWithToken("collections types", () => {
       cy.button("Update").click();
     });
     cy.findByTestId("official-collection-marker");
+    assertSidebarIcon("Official Collection Test", "badge");
   });
 });
 
@@ -75,6 +79,7 @@ describeWithoutToken("collection types", () => {
     cy.visit("/collection/root");
     cy.findByText("Official Collection Test").click();
     cy.findByTestId("official-collection-marker").should("not.exist");
+    assertSidebarIcon("Official Collection Test", "folder");
   });
 });
 
@@ -93,4 +98,13 @@ function assertNoCollectionTypeInput() {
   cy.findByText(/Collection type/i).should("not.exist");
   cy.findByText("Regular").should("not.exist");
   cy.findByText("Official").should("not.exist");
+}
+
+function assertSidebarIcon(collectionName, expectedIcon) {
+  sidebar()
+    .findByText(collectionName)
+    .parent()
+    .within(() => {
+      cy.icon(expectedIcon);
+    });
 }
