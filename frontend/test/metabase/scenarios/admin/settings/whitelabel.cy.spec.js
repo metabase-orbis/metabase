@@ -47,43 +47,58 @@ describeWithToken("formatting > whitelabel", () => {
   });
 
   describe("admin", () => {
-    it("should be able to set colors using color-picker dialog", () => {
+    it.only("should be able to set colors using color-picker dialog", () => {
+      cy.intercept("PUT", "/api/setting/application-colors").as("update");
+
       cy.visit("/admin/settings/whitelabel");
 
       cy.log("Select color with squares");
       changeThemeColor(1, colors.primary.hex);
 
-      cy.log("Select color by entering rgb value");
-      cy.get("td")
-        .eq(5)
-        .click();
-      cy.get(".sketch-picker")
-        .find("input")
-        .eq(1)
-        .clear()
-        .type(colors.nav.rgb[0]);
-      cy.get(".sketch-picker")
-        .find("input")
-        .eq(2)
-        .clear()
-        .type(colors.nav.rgb[1]);
-      cy.get(".sketch-picker")
-        .find("input")
-        .eq(3)
-        .clear()
-        .type(colors.nav.rgb[2]);
-      cy.findByText("Done").click();
+      cy.wait("@update");
 
-      cy.log("Select color by typing hex code");
-      cy.get("td")
-        .eq(29)
-        .click();
-      cy.get(".sketch-picker")
-        .find("input")
-        .first()
-        .clear()
-        .type(colors.additional4.hex);
-      cy.findByText("Done").click();
+      cy.signOut();
+      cy.visit("/");
+
+      cy.findByText("Sign in to Metabase");
+      // Note that if we have modified the logo, the entire background turns the brand color.
+      // But if we _haven't_, as is the case now, then the existing logo is branded
+      // As is the "Remember me" and "Sign in" inputs
+      cy.get(".Icon.text-brand")
+        .should("be.visible")
+        .should("have.css", "color", `rgb(${colors.primary.rgb.join(", ")})`);
+
+      // cy.log("Select color by entering rgb value");
+      // cy.get("td")
+      //   .eq(5)
+      //   .click();
+      // cy.get(".sketch-picker")
+      //   .find("input")
+      //   .eq(1)
+      //   .clear()
+      //   .type(colors.nav.rgb[0]);
+      // cy.get(".sketch-picker")
+      //   .find("input")
+      //   .eq(2)
+      //   .clear()
+      //   .type(colors.nav.rgb[1]);
+      // cy.get(".sketch-picker")
+      //   .find("input")
+      //   .eq(3)
+      //   .clear()
+      //   .type(colors.nav.rgb[2]);
+      // cy.findByText("Done").click();
+
+      // cy.log("Select color by typing hex code");
+      // cy.get("td")
+      //   .eq(29)
+      //   .click();
+      // cy.get(".sketch-picker")
+      //   .find("input")
+      //   .first()
+      //   .clear()
+      //   .type(colors.additional4.hex);
+      // cy.findByText("Done").click();
     });
   });
 
@@ -143,14 +158,13 @@ describeWithToken("formatting > whitelabel", () => {
       cy.signOut();
       cy.visit("/");
 
+      cy.findByText("Sign in to Metabase");
       // Note that if we have modified the logo, the entire background turns the brand color.
       // But if we _haven't_, as is the case now, then the existing logo is branded
       // As is the "Remember me" and "Sign in" inputs
-      cy.get(".Icon.text-brand").should(
-        "have.css",
-        "color",
-        `rgb(${colors.primary.rgb.join(", ")})`,
-      );
+      cy.get(".Icon.text-brand")
+        // .should("be.visible")
+        .should("have.css", "color", `rgb(${colors.primary.rgb.join(", ")})`);
 
       cy.findByLabelText("Email address").type("some@email.test");
       cy.findByLabelText("Password").type("1234");
