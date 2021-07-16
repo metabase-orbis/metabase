@@ -49,13 +49,29 @@ describeWithToken("formatting > whitelabel", () => {
   describe("admin", () => {
     it.only("should be able to set colors using color-picker dialog", () => {
       cy.intercept("PUT", "/api/setting/application-colors").as("update");
+      cy.intercept("GET", "/api/setting").as("settings");
 
       cy.visit("/admin/settings/whitelabel");
+
+      cy.wait("@settings");
 
       cy.log("Select color with squares");
       changeThemeColor(1, colors.primary.hex);
 
       cy.wait("@update");
+      cy.wait("@settings").then(xhr => {
+        const allSettings = xhr.response.body;
+        const color = allSettings.find(
+          prop => prop.key === "application-colors",
+        );
+
+        const logo = allSettings.find(
+          prop => prop.key === "application-logo-url",
+        );
+        console.log(logo);
+
+        expect(color.value.brand).to.eq("#" + colors.primary.hex.toLowerCase());
+      });
 
       cy.signOut();
       cy.visit("/");
