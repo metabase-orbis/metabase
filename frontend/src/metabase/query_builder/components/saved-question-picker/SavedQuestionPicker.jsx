@@ -10,9 +10,9 @@ import { Tree } from "metabase/components/tree";
 import Collection, {
   ROOT_COLLECTION,
   PERSONAL_COLLECTIONS,
+  isPersonalCollection,
 } from "metabase/entities/collections";
 import {
-  isPersonalCollection,
   nonPersonalOrArchivedCollection,
   currentUserPersonalCollections,
 } from "metabase/collections/utils";

@@ -1,13 +1,12 @@
 import { t } from "ttag";
-import { canonicalCollectionId } from "metabase/entities/collections";
+import {
+  canonicalCollectionId,
+  isPersonalCollection,
+} from "metabase/entities/collections";
 
 export function nonPersonalOrArchivedCollection(collection) {
   // @TODO - should this be an API thing?
   return !isPersonalCollection(collection) && !collection.archived;
-}
-
-export function isPersonalCollection(collection) {
-  return typeof collection.personal_owner_id === "number";
 }
 
 // Replace the name for the current user's collection
