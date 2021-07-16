@@ -1178,7 +1178,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "smoketest-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/smoketest
+          source-folder: smoketest
 
       - fe-tests-cypress:
           matrix:
@@ -1188,7 +1188,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "admin-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/admin
+          source-folder: admin
 
       - fe-tests-cypress:
           matrix:
@@ -1198,7 +1198,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "collections-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/collections
+          source-folder: collections
 
       - fe-tests-cypress:
           matrix:
@@ -1208,7 +1208,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "dashboard-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/dashboard
+          source-folder: dashboard
 
       - fe-tests-cypress:
           matrix:
@@ -1218,7 +1218,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "native-filters-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/native-filters
+          source-folder: native-filters
 
       - fe-tests-cypress:
           matrix:
@@ -1228,7 +1228,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "onboarding-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/onboarding
+          source-folder: onboarding
 
       - fe-tests-cypress:
           matrix:
@@ -1238,7 +1238,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "native-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/native
+          source-folder: native
 
       - fe-tests-cypress:
           matrix:
@@ -1248,7 +1248,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "question-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/question
+          source-folder: question
 
       - fe-tests-cypress:
           matrix:
@@ -1258,7 +1258,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "binning-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/binning
+          source-folder: binning
 
       - fe-tests-cypress:
           matrix:
@@ -1268,7 +1268,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "sharing-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/sharing
+          source-folder: sharing
 
       - fe-tests-cypress:
           matrix:
@@ -1278,7 +1278,7 @@ workflows:
           requires:
             - build-uberjar-<< matrix.edition >>
           cypress-group: "visualizations-<< matrix.edition >>"
-          source-folder: frontend/test/metabase/scenarios/visualizations
+          source-folder: visualizations
 
       - fe-tests-cypress:
           name: e2e-tests-mongo-4-<< matrix.edition >>
