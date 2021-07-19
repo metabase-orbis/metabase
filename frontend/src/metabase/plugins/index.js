@@ -63,7 +63,7 @@ const AUTHORITY_LEVEL_REGULAR = {
 };
 
 export const PLUGIN_COLLECTIONS = {
-  formFields: [],
+  authorityLevelFormFields: [],
   isRegularCollection: () => true,
   AUTHORITY_LEVEL: {
     [AUTHORITY_LEVEL_REGULAR.type]: AUTHORITY_LEVEL_REGULAR,

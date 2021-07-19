@@ -18,8 +18,7 @@ PLUGIN_COLLECTIONS.isRegularCollection = collection =>
 
 PLUGIN_COLLECTIONS.AUTHORITY_LEVEL = AUTHORITY_LEVELS;
 
-PLUGIN_COLLECTIONS.formFields = [
-  ...PLUGIN_COLLECTIONS.formFields,
+PLUGIN_COLLECTIONS.authorityLevelFormFields = [
   {
     name: "authority_level",
     title: t`Collection type`,
