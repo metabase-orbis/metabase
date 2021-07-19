@@ -1,6 +1,7 @@
 import {
   restore,
   modal,
+  popover,
   sidebar,
   describeWithToken,
   describeWithoutToken,
@@ -20,10 +21,10 @@ const TEST_QUESTION_QUERY = {
 describeWithToken("collections types", () => {
   beforeEach(() => {
     restore();
-    cy.signInAsAdmin();
   });
 
   it("should be able to manage collection authority level", () => {
+    cy.signInAsAdmin();
     cy.visit("/collection/root");
 
     // Test can create official collection
@@ -33,7 +34,7 @@ describeWithToken("collections types", () => {
       setOfficial();
       cy.button("Create").click();
     });
-    cy.findByText(COLLECTION_NAME).click();
+    openCollection(COLLECTION_NAME);
     cy.findByTestId("official-collection-marker");
     assertSidebarIcon(COLLECTION_NAME, "badge");
 
@@ -59,7 +60,67 @@ describeWithToken("collections types", () => {
   });
 
   it("displays official badge throughout the application", () => {
+    cy.signInAsAdmin();
     testOfficialBadgePresence();
+  });
+
+  it("should not see collection type field if not admin", () => {
+    cy.signIn("normal");
+    cy.visit("/collection/root");
+
+    openCollection("First collection");
+
+    cy.icon("new_folder").click();
+    modal().within(() => {
+      assertNoCollectionTypeInput();
+      cy.icon("close").click();
+    });
+
+    cy.icon("pencil").click();
+    cy.findByText("Edit this collection").click();
+    modal().within(() => {
+      assertNoCollectionTypeInput();
+    });
+  });
+
+  it("should not be able to manage collection authority level for personal collections and their children", () => {
+    cy.signInAsAdmin();
+    cy.visit("/collection/root");
+
+    openCollection("Your personal collection");
+    cy.icon("pencil").should("not.exist");
+
+    cy.icon("new_folder").click();
+    modal().within(() => {
+      assertNoCollectionTypeInput();
+      cy.findByLabelText("Name").type("Personal collection child");
+      cy.button("Create").click();
+    });
+
+    openCollection("Personal collection child");
+
+    cy.icon("new_folder").click();
+    modal().within(() => {
+      assertNoCollectionTypeInput();
+      cy.icon("close").click();
+    });
+
+    // Testing that collection type field appears
+    // once a parent collection is changed to a non-personal collection
+    cy.icon("pencil").click();
+    cy.findByText("Edit this collection").click();
+    modal().within(() => {
+      assertNoCollectionTypeInput();
+      cy.get(".AdminSelect").click();
+    });
+    popover().within(() => {
+      cy.findByText("First collection").click();
+    });
+    modal().within(() => {
+      cy.findByText(/Collection type/i);
+      cy.findByText("Regular");
+      cy.findByText("Official");
+    });
   });
 });
 
@@ -78,7 +139,7 @@ describeWithoutToken("collection types", () => {
       cy.icon("close").click();
     });
 
-    cy.findByText("First collection").click();
+    openCollection("First collection");
     cy.icon("pencil").click();
     cy.findByText("Edit this collection").click();
     modal().within(() => {
@@ -135,6 +196,12 @@ function testOfficialBadgePresence(expectBadge = true) {
     assertSearchResultBadge("Official Question", { expectBadge });
     assertSearchResultBadge("Official Dashboard", { expectBadge });
   });
+}
+
+function openCollection(collectionName) {
+  sidebar()
+    .findByText(collectionName)
+    .click();
 }
 
 function setOfficial(official = true) {
