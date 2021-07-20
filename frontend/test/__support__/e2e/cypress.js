@@ -17,6 +17,7 @@ export * from "./helpers/e2e-mock-app-settings-helpers";
 export * from "./helpers/e2e-assertion-helpers";
 export * from "./helpers/e2e-data-model-helpers";
 export * from "./helpers/e2e-misc-helpers";
+export * from "./helpers/e2e-cloud-helpers";
 export * from "./helpers/e2e-deprecated-helpers";
 
 Cypress.on("uncaught:exception", (err, runnable) => false);
