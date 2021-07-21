@@ -21,6 +21,11 @@ import Funnel from "./visualizations/Funnel";
 import Gauge from "./visualizations/Gauge";
 import ObjectDetail from "./visualizations/ObjectDetail";
 import PivotTable from "./visualizations/PivotTable";
+import HelloWorld from './visualizations/HelloWorld';
+
+import { OMSMap } from './visualizations/OMSMap/index';
+import { OMSMapCategories } from './visualizations/OMSMapCategories/index';
+import { OMSMapThematicMap } from './visualizations/OMSMapThematicMap/index';
 
 export default function() {
   registerVisualization(Scalar);
@@ -37,6 +42,12 @@ export default function() {
   registerVisualization(RowChart);
   registerVisualization(ScatterPlot);
   registerVisualization(PieChart);
+
+  registerVisualization(OMSMap);
+  registerVisualization(OMSMapCategories);
+  registerVisualization(OMSMapThematicMap);
+  registerVisualization(HelloWorld);
+  
   registerVisualization(MapViz);
   registerVisualization(Funnel);
   registerVisualization(ObjectDetail);

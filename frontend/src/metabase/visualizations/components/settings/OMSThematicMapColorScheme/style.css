@@ -1,0 +1,25 @@
+:local .selectButton {
+  width: 100%;
+}
+
+:local .selectButton > span {
+  width: 100%;
+}
+
+:local .colorSchemeOptionWrapper > a > div {
+  width: 100%
+}
+
+:local .paletteColors {
+  display: flex;
+  flex-direction: row;
+}
+
+:local .paletteColors.threeClrs .paletteColorItem {
+  width: 33%; 
+  height: 16px;
+}
+:local .paletteColors.twoClrs .paletteColorItem {
+  width: 50%;
+  height: 16px;
+}

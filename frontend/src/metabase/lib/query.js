@@ -10,7 +10,7 @@ export * from "./query/field_ref";
 
 // The backend won't return more than 2,000 rows so in cases where we
 // need to communicate or use that, use this constant
-export const HARD_ROW_LIMIT = 2000;
+export const HARD_ROW_LIMIT = 999999;
 
 export const NEW_QUERY_TEMPLATES = {
   query: {

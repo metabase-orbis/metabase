@@ -1,0 +1,33 @@
+:local .distinctWrapper {
+  display: flex;
+  align-items: center;
+}
+
+:local .distinctWrapper:last-of-type {
+  border-bottom: 0;
+}
+
+:local .distinctEnabledCheckbox {
+  margin-right: 5px;
+}
+
+:local .distinctInfo {
+  display: flex;
+  align-items: center;
+}
+
+:local .distinctInfoCount {
+  font-weight: bold;
+  align-self: flex-start;
+}
+
+:local .distinctInfoValue {
+  margin-left: 4px;
+}
+
+:local .colorPickerWrapper {
+  margin: 3px 0;
+  flex-grow: 1;
+  display: flex;
+  justify-content: flex-end;
+}

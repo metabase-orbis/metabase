@@ -30,7 +30,7 @@ import { defer } from "metabase/lib/promise";
 import Question from "metabase-lib/lib/Question";
 import { FieldDimension } from "metabase-lib/lib/Dimension";
 import { cardIsEquivalent, cardQueryIsEquivalent } from "metabase/meta/Card";
-import { normalize } from "cljs/metabase.mbql.js";
+import { normalize } from "../../cljs/metabase.mbql.js";
 
 import {
   getCard,
