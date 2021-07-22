@@ -21,7 +21,6 @@ import Funnel from "./visualizations/Funnel";
 import Gauge from "./visualizations/Gauge";
 import ObjectDetail from "./visualizations/ObjectDetail";
 import PivotTable from "./visualizations/PivotTable";
-import HelloWorld from './visualizations/HelloWorld';
 
 import { OMSMap } from './visualizations/OMSMap/index';
 import { OMSMapCategories } from './visualizations/OMSMapCategories/index';

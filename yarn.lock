@@ -4239,14 +4239,6 @@ cross-env@^6.0.3:
   dependencies:
     cross-spawn "^7.0.0"
 
-cross-spawn-async@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/cross-spawn-async/-/cross-spawn-async-1.0.1.tgz#bb525c1e420d9942552e04791a3eb2d9887a105f"
-  integrity sha1-u1JcHkINmUJVLgR5Gj6y2Yh6EF8=
-  dependencies:
-    lru-cache "^2.6.5"
-    which "^1.1.1"
-
 cross-spawn@^5.0.1:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-5.1.0.tgz#e8bd0efee58fcff6f8f94510a0a554bbfa235449"
