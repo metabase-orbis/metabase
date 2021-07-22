@@ -12,12 +12,9 @@ import Projection from 'ol/proj/Projection';
 import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
 import { Fill, Stroke, Circle, Style } from 'ol/style';
-import Feature from 'ol/Feature';
 
 import css from './style.css';
 
-import type { VisualizationProps } from "metabase-types/types/Visualization";
-import type { SettingDef } from 'metabase/visualizations/lib/settings';
 import { Row } from 'metabase-types/types/Dataset';
 import { memoize } from 'metabase-lib/lib/utils';
 import { isNotGeomColumn, isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
@@ -34,29 +31,50 @@ const Algorithm = Object.freeze({
     Jenks: 2
 });
 
-export interface IOMSMapProps extends VisualizationProps { }
-export interface IOMSMapState { }
+/**
+ * @typedef IOMSMapProps
+ */
 
-class OMSMapThematicMapComponent extends React.Component<IOMSMapProps> {
-    _map: Map;
+/**
+ * @typedef IOMSMapState
+ */
+
+/**
+ * @extends {React.Component<import('metabase-types/types/Visualization').VisualizationProps & IOMSMapProps, IOMSMapState>}
+ */
+class OMSMapThematicMapComponent extends React.Component {
+    /**
+     * @type {import('ol/Map')}
+     */
+    _map;
     _vectorLayer = new VectorLayer({
         source: new VectorSource()
     });
-    _mapMountEl: HTMLDivElement;
+
+    /**
+     * @type {HTMLDivElement}
+     */
+    _mapMountEl;
 
     static uiName = "OMS Тематическая карта";
     static identifier = "olmapthematicmap";
     static iconName = "location";
 
-    /* Индекс выбранной колонки. Используется для получения значения колонки из строки таблицы */
-    selectedColumnIndex: number;
-    /* Уникальные значения */
-    geoStats: any;
+    /** 
+     * @type {number}
+     * Индекс выбранной колонки. Используется для получения значения колонки из строки таблицы 
+     */
+    selectedColumnIndex;
 
-    static settings: { [k: string]: SettingDef; } = {
+    geoStats;
+
+    /**
+     * @type {{ [k: string]: import('metabase/visualizations/lib/settings').SettingDef; }}
+     */
+    static settings = {
         ...fieldSetting("olmapthematicmap.column", {
             title: `Колонка`,
-            fieldFilter: isNotGeomColumn,
+            fieldFilter: isNotGeomColumn
         }),
 
         'olmapthematicmap.algorithm': {
@@ -164,10 +182,10 @@ class OMSMapThematicMapComponent extends React.Component<IOMSMapProps> {
 
         const colorsNumber = this.props.settings['olmapthematicmap.colors_number'];
         const paletteValue = this.props.settings['olmapthematicmap.pallete'];
-        const classesNum = this.props.settings['olmapthematicmap.classes_num']
+        const classesNum = this.props.settings['olmapthematicmap.classes_num'];
 
         this.selectedColumnIndex = getColumnIndexByName(cols, this.props.settings['olmapthematicmap.column']);
-        
+
         this.selectedColorTheme = getColorTheme(colorsNumber, paletteValue);
 
         this.geoStats = new geostats(getValues(rows, this.selectedColumnIndex));
@@ -190,7 +208,7 @@ class OMSMapThematicMapComponent extends React.Component<IOMSMapProps> {
 
     getColorForValue(value) {
         const algorithm = this.props.settings['olmapthematicmap.algorithm'];
-        let color = '#000000'
+        let color = '#000000';
 
         let ranges;
         switch (algorithm) {
@@ -229,8 +247,13 @@ class OMSMapThematicMapComponent extends React.Component<IOMSMapProps> {
         return color;
     }
 
+    /**
+     * @param {string} color 
+     * @param {number} opacity 
+     * @returns {(feature: import('ol/Feature')) => import('ol/style/Style')[]}
+     */
     @memoize
-    generateStyleForColor(color: string, opacity: number) {
+    generateStyleForColor(color, opacity) {
         const [r, g, b, a] = colorAsArray(color);
         const colorWithOpacity = [r, g, b, opacity / 100];
 
@@ -266,7 +289,7 @@ class OMSMapThematicMapComponent extends React.Component<IOMSMapProps> {
         ];
         styles[GeometryType.MULTI_POLYGON] = styles[GeometryType.POLYGON];
 
-        return function (feature: Feature) {
+        return function (feature) {
             const geom = feature.getGeometry();
             return geom ? (styles[geom.getType()] || []) : [];
         };

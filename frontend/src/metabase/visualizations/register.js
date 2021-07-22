@@ -46,7 +46,6 @@ export default function() {
   registerVisualization(OMSMap);
   registerVisualization(OMSMapCategories);
   registerVisualization(OMSMapThematicMap);
-  registerVisualization(HelloWorld);
   
   registerVisualization(MapViz);
   registerVisualization(Funnel);

@@ -14,7 +14,7 @@ import { asArray as colorAsArray } from 'ol/color';
 import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import View from 'ol/View';
-import { 
+import {
     OMSCategoryClassesSettings,
     TCategoriesSettings
 } from 'metabase/visualizations/components/settings/OMSCategoryClasses';
@@ -35,7 +35,7 @@ import { memoize } from 'metabase-lib/lib/utils';
  */
 const generateRainbow = (noOfColors) => {
     let r, g, b;
-    const colors = []
+    const colors = [];
     const frequency = 5 / noOfColors;
 
     function componentToHex(c) {
@@ -54,7 +54,7 @@ const generateRainbow = (noOfColors) => {
         colors.push(rgbToHex(r, g, b));
     }
     return colors;
-}
+};
 
 export interface IOMSMapProps extends VisualizationProps { }
 export interface IOMSMapState { }
@@ -68,8 +68,8 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
             title: 'Классы',
             widget: OMSCategoryClassesSettings,
             getProps: (
-                [{ data }], 
-                { 'olmapcategories.settings': settings = {} }: { 'olmapcategories.settings': TCategoriesSettings }
+                [{ data }],
+                { 'olmapcategories.settings': settings = {} }: { 'olmapcategories.settings': TCategoriesSettings; }
             ) => {
                 const uniqueValues = getUniqueValues(data.rows, getColumnIndexByName(data.cols, settings.column));
 
@@ -109,14 +109,14 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
     /* Уникальные значения */
     uniqueValues: {
         /** Уникальное значение */
-        value: any; 
+        value: any;
         /** Сколько раз значение value встречается во всех строках таблицы */
-        count: number 
+        count: number;
     }[];
     /** Цвета, которые сгенерирует клиент для всех уникальных значений. По длине совпадает с uniqueValues */
     rainbow: string[];
     /** Цвета, которые были перезаписаны в настройках визуализации. Ключ - value, Значение - цвет, на который был перезаписан */
-    savedColors: {[k: string]: string};
+    savedColors: { [k: string]: string; };
     /** Если какое-то из value будет в этом массиве, то у него должна быть снята галочка и отрисовываться на карте это значение не должно */
     uncheckedValues: any[];
 
@@ -138,7 +138,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
                 zoom: 2,
             }),
         });
-        
+
         this.updateCategoryClasses();
         this.updateMarkers();
     }
@@ -174,7 +174,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
             savedColors = {},
             uncheckedValues = []
         } = settings;
-        
+
 
         this.selectedColumnIndex = getColumnIndexByName(cols, settings.column);
         this.uniqueValues = getUniqueValues(rows, this.selectedColumnIndex);
@@ -211,7 +211,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
                     const color = this.getRainbowColorForRow(row);
                     const opacity = this.props.settings['olmapcategories.opacity'] || 100;
 
-                    feature.setStyle(this.generateStyleForColor(color, opacity))
+                    feature.setStyle(this.generateStyleForColor(color, opacity));
                 }
             } else {
                 console.warn('this.selectedColumnIndex = ', this.selectedColumnIndex, settings);
@@ -221,7 +221,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
         }
     }
 
-    geojsonToFeature (geojson) {
+    geojsonToFeature(geojson) {
         const formatGeoJSON = new GeoJSONFormatter();
 
         const geom = formatGeoJSON.readFeatures(geojson, {
@@ -233,8 +233,8 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
 
     @memoize
     generateStyleForColor(color: string, opacity: number) {
-        const [ r, g, b, a ] = colorAsArray(color);
-        const colorWithOpacity = [ r, g, b, opacity / 100 ];
+        const [r, g, b, a] = colorAsArray(color);
+        const colorWithOpacity = [r, g, b, opacity / 100];
 
         const styles = {};
         styles[GeometryType.LINE_STRING] = [
@@ -256,7 +256,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
                     radius: 5
                 }),
             })
-        ]
+        ];
         styles[GeometryType.MULTI_POINT] = styles[GeometryType.POINT];
 
         styles[GeometryType.POLYGON] = [
@@ -268,10 +268,10 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
         ];
         styles[GeometryType.MULTI_POLYGON] = styles[GeometryType.POLYGON];
 
-        return function(feature: Feature) {
+        return function (feature: Feature) {
             const geom = feature.getGeometry();
             return geom ? (styles[geom.getType()] || []) : [];
-        }
+        };
     }
 
     getRainbowColorForRow(row: Row) {
