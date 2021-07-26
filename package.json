@@ -10,6 +10,9 @@
     "yarn": ">=1.12.3"
   },
   "dependencies": {
+    "@turf/center-of-mass": "^6.5.0",
+    "@turf/centroid": "^6.5.0",
+    "@turf/projection": "^6.5.0",
     "@visx/axis": "1.8.0",
     "@visx/grid": "1.16.0",
     "@visx/group": "1.7.0",

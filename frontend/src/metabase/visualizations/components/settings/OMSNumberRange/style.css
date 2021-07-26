@@ -1,0 +1,20 @@
+:local .omsInputNumberRange {
+  display: flex;
+}
+
+:local .omsInputNumberRangeItem {
+  margin-left: 10px;
+}
+
+:local .omsInputNumberRangeItem:first-of-type {
+  margin-left: 0;
+}
+
+:local .omsInputNumberRangeItemLabel {
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+:local .omsInputNumberRangeItemComponent {
+
+}

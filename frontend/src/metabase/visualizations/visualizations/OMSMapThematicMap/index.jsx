@@ -25,6 +25,7 @@ import { OMSThematicMapColorScheme, getColorTheme } from 'metabase/visualization
 import { getUniqueValues, getValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
 import geostats from 'metabase/visualizations/lib/oms/geostats';
+import { isNumeric } from "metabase/lib/schema_metadata";
 
 const Algorithm = Object.freeze({
     EqInterval: 0,
@@ -75,7 +76,7 @@ class OMSMapThematicMapComponent extends React.Component {
     static settings = {
         ...fieldSetting("olmapthematicmap.column", {
             title: `Колонка`,
-            fieldFilter: isNotGeomColumn
+            fieldFilter: isNumeric
         }),
 
         'olmapthematicmap.algorithm': {
@@ -228,6 +229,7 @@ class OMSMapThematicMapComponent extends React.Component {
         }
 
         for (let i = 0; i < ranges.length; i++) {
+            // Последнее значение обрабатывать не нужно
             if (i === ranges.length - 1) {
                 break;
             }

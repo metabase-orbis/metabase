@@ -25,6 +25,7 @@ import PivotTable from "./visualizations/PivotTable";
 import { OMSMap } from './visualizations/OMSMap/index';
 import { OMSMapCategories } from './visualizations/OMSMapCategories/index';
 import { OMSMapThematicMap } from './visualizations/OMSMapThematicMap/index';
+import { OMSMapBubble } from './visualizations/OMSMapBubble/index';
 
 export default function() {
   registerVisualization(Scalar);
@@ -45,6 +46,7 @@ export default function() {
   registerVisualization(OMSMap);
   registerVisualization(OMSMapCategories);
   registerVisualization(OMSMapThematicMap);
+  registerVisualization(OMSMapBubble);
   
   registerVisualization(MapViz);
   registerVisualization(Funnel);
