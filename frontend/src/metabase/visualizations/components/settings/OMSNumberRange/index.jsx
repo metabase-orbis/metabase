@@ -4,20 +4,55 @@ import ChartSettingInputNumeric from 'metabase/visualizations/components/setting
 
 import css from './style.css';
 
+//taking from http://stackoverflow.com/questions/18082/validate-decimal-numbers-in-javascript-isnumeric
+const isNumber = function (n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+};
+
+
 export const OMSNumberRange = ({
     value,
-    onChange
+    onChange,
+    min,
+    max
 }) => {
 
     const [fromValue, toValue] = value;
 
     const onFromValueChange = React.useCallback((value) => {
-        onChange([value, toValue]);
-    }, [onChange, toValue]);
+        onChange([
+            isNumber(min) && (value < min) ? min : value,
+            toValue
+        ]);
+    }, [onChange, toValue, min]);
 
     const onToValueChange = React.useCallback((value) => {
-        onChange([fromValue, value]);
-    }, [onChange, fromValue]);
+        onChange([
+            fromValue,
+            isNumber(max) && (value > max) ? max : value
+        ]);
+    }, [onChange, fromValue, max]);
+
+    React.useEffect(() => {
+        const newValue = [fromValue, toValue];
+        let changed = false;
+        if (isNumber(min) && (newValue[0] < min)) {
+            newValue[0] = min;
+            changed = true;
+        }
+
+        if (isNumber(max) && (newValue[1] > max)) {
+            newValue[1] = max;
+            changed = true;
+        }
+
+        if (changed) {
+            onChange(newValue);
+        }
+    }, 
+        /* eslint-disable-next-line */
+        []
+    );
 
     return (
         <div className={css.omsInputNumberRange}>
@@ -50,5 +85,7 @@ export const OMSNumberRange = ({
 
 OMSNumberRange.propTypes = {
     value: PropTypes.array,
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+    min: PropTypes.number,
+    max: PropTypes.number
 };

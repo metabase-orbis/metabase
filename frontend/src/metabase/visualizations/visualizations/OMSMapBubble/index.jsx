@@ -125,7 +125,9 @@ class OMSMapBubbleComponent extends React.Component {
         'omsmapbubble.size': {
             title: 'Размер',
             widget: OMSNumberRange,
-            default: [10, 50]
+            default: [10, 50],
+            max: 100,
+            min: 1
         },
     };
 
