@@ -1,0 +1,13 @@
+:local .wrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+:local .wrapper:first-of-type {
+  margin-top: 0;
+}
+
+:local .select {
+  margin-right: 5px;
+  flex-grow: 1;
+}

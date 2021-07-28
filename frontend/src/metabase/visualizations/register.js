@@ -26,6 +26,7 @@ import { OMSMap } from './visualizations/OMSMap/index';
 import { OMSMapCategories } from './visualizations/OMSMapCategories/index';
 import { OMSMapThematicMap } from './visualizations/OMSMapThematicMap/index';
 import { OMSMapBubble } from './visualizations/OMSMapBubble/index';
+import { OMSPieMap } from './visualizations/OMSPieMap/index';
 
 export default function() {
   registerVisualization(Scalar);
@@ -47,6 +48,7 @@ export default function() {
   registerVisualization(OMSMapCategories);
   registerVisualization(OMSMapThematicMap);
   registerVisualization(OMSMapBubble);
+  registerVisualization(OMSPieMap);
   
   registerVisualization(MapViz);
   registerVisualization(Funnel);

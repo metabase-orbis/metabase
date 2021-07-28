@@ -16,7 +16,12 @@ const FIXED_LAYOUT = [
   ["scatter", "pie", "funnel", "smartscalar", "progress", "gauge"],
   ["scalar", "table", "pivot", "map"],
 ];
-const FIXED_TYPES = new Set(_.flatten(FIXED_LAYOUT));
+
+const OMS_LAYOUT = [
+    ["olmap", "omsmapbubble", "olmapcategories", "olmapthematicmap", "omsmappie"]
+]
+
+const FIXED_TYPES = new Set(_.union(_.flatten(FIXED_LAYOUT), _.flatten(OMS_LAYOUT)));
 
 const ChartTypeSidebar = ({
   question,
@@ -37,7 +42,7 @@ const ChartTypeSidebar = ({
     _.groupBy(other, (_, index) => Math.floor(index / 4)),
   );
 
-  const layout = [...FIXED_LAYOUT, ...otherGrouped];
+  const layout = [...FIXED_LAYOUT, ...OMS_LAYOUT, ...otherGrouped];
 
   return (
     <SidebarContent
