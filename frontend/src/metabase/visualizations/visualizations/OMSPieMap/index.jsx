@@ -19,6 +19,8 @@ import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { isNumeric } from "metabase/lib/schema_metadata";
 import { OMSMapPieFields } from 'metabase/visualizations/components/settings/OMSMapPieFields';
+import { generateColor } from 'metabase/visualizations/lib/oms/colors';
+
 
 
 
@@ -75,7 +77,7 @@ class OMSPieMapComponent extends React.Component {
                 return [
                     {
                         name: firstNumericColName,
-                        color: '#00ffff'
+                        color: generateColor()
                     }
                 ]
             }

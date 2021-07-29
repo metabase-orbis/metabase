@@ -87,15 +87,8 @@ export const OMSMapPieFields = ({
         ])
     }, [ onChange, value ]);
 
-    const newFieldSelectOptions = [
-        {
-            name: 'Выберите колонку',
-            value: 'choose_column',
-            disabled: true
-        },
-        ...getOptions()
-    ];
-    const showColumnChooserSelect = newFieldSelectOptions.length > 1;
+    const newFieldSelectOptions = getOptions();
+    const showColumnChooserSelect = newFieldSelectOptions.length > 0;
     return (
         <div className={css.pieFieldsWrapper}>
             <div className={css.fieldsWrapper}>
@@ -106,7 +99,8 @@ export const OMSMapPieFields = ({
                 {
                     showColumnChooserSelect && (
                         <Select
-                            value='choose_column'
+                            value={null}
+                            placeholder='Выберите колонку'
                             options={newFieldSelectOptions}
                             onChange={onNewColumnSelectChange}
                         />
