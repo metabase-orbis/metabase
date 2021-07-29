@@ -14,6 +14,7 @@ import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
 import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
+import { generateRainbow } from 'metabase/visualizations/lib/oms/colors';
 import View from 'ol/View';
 import {
     OMSCategoryClassesSettings,
@@ -29,38 +30,8 @@ import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column
 import { Row } from 'metabase-types/types/Dataset';
 import { memoize } from 'metabase-lib/lib/utils';
 
-
-/**
- * @param {number} noOfColors 
- * @returns {string[]} 
- */
-const generateRainbow = (noOfColors) => {
-    let r, g, b;
-    const colors = [];
-    const frequency = 5 / noOfColors;
-
-    function componentToHex(c) {
-        const hex = Math.round(c).toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-    }
-
-    function rgbToHex(r, g, b) {
-        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-    }
-
-    for (let i = 0; i < noOfColors; ++i) {
-        r = Math.sin(frequency * i) * (127) + 128;
-        g = Math.sin(frequency * i + 2) * (127) + 128;
-        b = Math.sin(frequency * i + 4) * (127) + 128;
-        colors.push(rgbToHex(r, g, b));
-    }
-    return colors;
-};
-
 export interface IOMSMapProps extends VisualizationProps { }
 export interface IOMSMapState { }
-
-
 
 class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapState> {
 

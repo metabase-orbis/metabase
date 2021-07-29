@@ -23,6 +23,10 @@ export const PieFieldRow = ({
     const onColorChangeWrapper = React.useCallback((color) => {
         onColorChange(color, columnValue);
     }, [ onColorChange, columnValue ]);
+
+    const onDeleteClickWrapper = React.useCallback(() => {
+        onDeleteClick(columnValue);
+    }, [onDeleteClick, columnValue]);
     
     return (
         <div className={css.wrapper}>
@@ -41,7 +45,7 @@ export const PieFieldRow = ({
             <Button 
                 onlyIcon
                 icon='close'
-                onClick={onDeleteClick}
+                onClick={onDeleteClickWrapper}
             />
         </div>
     )

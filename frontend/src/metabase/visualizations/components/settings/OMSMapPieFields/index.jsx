@@ -3,6 +3,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Select from 'metabase/components/Select';
 import { getOptionFromColumn } from 'metabase/visualizations/lib/settings/utils';
+import { generateColor } from 'metabase/visualizations/lib/oms/colors';
 import { PieFieldRow } from './pie-field-row';
 
 import css from './style.css';
@@ -51,6 +52,17 @@ export const OMSMapPieFields = ({
         }
     }, [ value, onChange ]);
 
+    const onRowDeleteClick = React.useCallback((columnName) => {
+        const colObj = value.find((col) => col.name === columnName);
+
+        if (colObj) {
+            const newValue = [...value];
+            newValue.splice(value.indexOf(colObj), 1);
+
+            onChange(newValue);
+        }
+    }, [ value, onChange ]);
+
     const renderColumnSelect = React.useCallback((/** @type {{ name: string; color: string }} */ column) => {
         return (
             <PieFieldRow 
@@ -60,22 +72,30 @@ export const OMSMapPieFields = ({
                 options={getOptions([ column.name ])}
                 onSelectChange={onRowSelectChange}
                 onColorChange={onRowColorChange}
-                onDeleteClick={() => {}}
+                onDeleteClick={onRowDeleteClick}
             />
         )
-    }, [ getOptions, onRowSelectChange, onRowColorChange ]);
+    }, [ getOptions, onRowSelectChange, onRowColorChange, onRowDeleteClick ]);
 
     const onNewColumnSelectChange = React.useCallback(({ target }) => {
         onChange([
             ...value,
             {
                 name: target.value,
-                color: '#ff00ff'
+                color: generateColor()
             }
         ])
     }, [ onChange, value ]);
 
-    const newFieldSelectOptions = getOptions();
+    const newFieldSelectOptions = [
+        {
+            name: 'Выберите колонку',
+            value: 'choose_column',
+            disabled: true
+        },
+        ...getOptions()
+    ];
+    const showColumnChooserSelect = newFieldSelectOptions.length > 1;
     return (
         <div className={css.pieFieldsWrapper}>
             <div className={css.fieldsWrapper}>
@@ -84,9 +104,9 @@ export const OMSMapPieFields = ({
 
             <div className={css.newFieldWrapper}>
                 {
-                    !!newFieldSelectOptions.length && (
+                    showColumnChooserSelect && (
                         <Select
-                            value={null}
+                            value='choose_column'
                             options={newFieldSelectOptions}
                             onChange={onNewColumnSelectChange}
                         />
