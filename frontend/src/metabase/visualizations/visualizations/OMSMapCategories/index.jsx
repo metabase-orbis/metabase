@@ -7,6 +7,7 @@ import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSONFormatter from 'ol/format/GeoJSON';
+import WKB from 'ol/format/WKB';
 import Projection from 'ol/proj/Projection';
 import { Fill, Stroke, Circle, Style } from 'ol/style';
 import Feature from 'ol/Feature';
@@ -195,8 +196,13 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
 
     geojsonToFeature(geojson) {
         const formatGeoJSON = new GeoJSONFormatter();
+        const wkb = new WKB();
 
-        const geom = formatGeoJSON.readFeatures(geojson, {
+        // const geom = formatGeoJSON.readFeatures(geojson, {
+        //     dataProjection: new Projection({ code: "EPSG:3857" })
+        // });
+
+        const geom = wkb.readFeatures(geojson, {
             dataProjection: new Projection({ code: "EPSG:3857" })
         });
 

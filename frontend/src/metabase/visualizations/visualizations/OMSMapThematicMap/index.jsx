@@ -11,6 +11,7 @@ import VectorSource from 'ol/source/Vector';
 import GeoJSONFormatter from 'ol/format/GeoJSON';
 import Projection from 'ol/proj/Projection';
 import GeometryType from 'ol/geom/GeometryType';
+import WKB from 'ol/format/WKB';
 import { asArray as colorAsArray } from 'ol/color';
 import { Fill, Stroke, Circle, Style } from 'ol/style';
 
@@ -200,10 +201,15 @@ class OMSMapThematicMapComponent extends React.Component {
 
     geojsonToFeature(geojson) {
         const formatGeoJSON = new GeoJSONFormatter();
+        const wkb = new WKB();
 
-        const geom = formatGeoJSON.readFeatures(geojson, {
+        // const geom = formatGeoJSON.readFeatures(geojson, {
+        //     dataProjection: new Projection({ code: "EPSG:3857" })
+        // });
+
+        const geom = wkb.readFeatures(geojson, {
             dataProjection: new Projection({ code: "EPSG:3857" })
-        });
+        })
 
         return geom;
     }
@@ -300,6 +306,7 @@ class OMSMapThematicMapComponent extends React.Component {
 
     updateMarkers() {
         const { settings, series, data } = this.props;
+
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         this._vectorLayer.getSource().clear();
@@ -317,6 +324,7 @@ class OMSMapThematicMapComponent extends React.Component {
             }
 
             const features = this.geojsonToFeature(geoJSON);
+
             if (this.selectedColumnIndex !== -1) {
                 for (const feature of features) {
                     const color = this.getColorForValue(row[this.selectedColumnIndex]);

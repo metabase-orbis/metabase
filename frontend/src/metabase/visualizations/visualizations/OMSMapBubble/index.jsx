@@ -8,6 +8,7 @@ import View from 'ol/View';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSONFormatter from 'ol/format/GeoJSON';
+import WKB from 'ol/format/WKB';
 import Projection from 'ol/proj/Projection';
 /* eslint-disable-next-line */
 import centerOfMass from '@turf/center-of-mass';
@@ -188,25 +189,19 @@ class OMSMapBubbleComponent extends React.Component {
         this.classJenks = this.geoStats.getClassJenks(classesNum);
     }
 
-    geojsonToFeature(geojsonString) {
-        const geoJSONParsed = JSON.parse(geojsonString);
-        // toEPSG4326(geoJSONParsed, { mutate: true });
-
-        const center = centerOfMass(geoJSONParsed);
-        // toEPSG3857(centroid, { mutate: true });
-
-        // const _temp_geom_ = {
-        //     "type": "FeatureCollection",
-        //     "features": [
-        //         {
-        //             "type": "Feature",
-        //             "geometry": JSON.parse(geojsonString)
-        //         },
-        //         center
-        //     ]
-        // };
-
+    geojsonToFeature(wkbBuff) {
+        // const geoJSONParsed = JSON.parse(geojsonString);
         const formatGeoJSON = new GeoJSONFormatter();
+        const wkb = new WKB();
+
+        const feature = wkb.readFeature(wkbBuff, {
+            dataProjection: new Projection({ code: "EPSG:3857" })
+        });
+
+        const geoJson = formatGeoJSON.writeFeatureObject(feature);
+        
+        const center = centerOfMass(geoJson.geometry);
+
         const features = formatGeoJSON.readFeatures(JSON.stringify(center), {
             dataProjection: new Projection({ code: "EPSG:3857" })
         });
@@ -253,7 +248,9 @@ class OMSMapBubbleComponent extends React.Component {
                 continue;
             }
 
+            
             const features = this.geojsonToFeature(geoJSON);
+
             if (this.selectedColumnIndex !== -1) {
                 for (const feature of features) {
                     const color = this.props.settings['omsmapbubble.icon_color'];
