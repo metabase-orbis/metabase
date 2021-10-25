@@ -17,6 +17,7 @@ import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import { generateRainbow } from 'metabase/visualizations/lib/oms/colors';
 import View from 'ol/View';
+import { transform } from 'ol/proj';
 import {
     OMSCategoryClassesSettings,
     TCategoriesSettings
@@ -26,6 +27,7 @@ import styles from './style.css';
 
 import type { VisualizationProps } from "metabase-types/types/Visualization";
 import type { SettingDef } from 'metabase/visualizations/lib/settings';
+import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
 import { getUniqueValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
 import { Row } from 'metabase-types/types/Dataset';
@@ -60,7 +62,15 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
             default: 80,
             min: 0,
             max: 100
-        }
+        },
+        'olmapcategories.mapParams': {
+            title: 'Параметры карты',
+            widget: OMSInputGroup,
+            names: ['Масштаб', 'Координаты центра'],
+            default: [2, 0, 0],
+            types: ['number', 'number', 'number'],
+            setValueTitle: 'Текущая позиция карты'
+        },
     };
 
     static isSensible({ cols, rows }) {
@@ -98,6 +108,9 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
     }
 
     componentDidMount() {
+        const mapParams = this.props.settings['olmapcategories.mapParams'].map(n => Number(n));
+        const [zoom, ...center] = mapParams;
+        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
         this._map = new OLMap({
             layers: [
                 new TileLayer({
@@ -107,11 +120,19 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
             ],
             target: this._mapMountEl,
             view: new View({
-                center: [0, 0],
-                zoom: 2,
-            }),
+                center: trCenter,
+                zoom: zoom || 2,
+            })
         });
-
+        this._map.on('moveend', () => {
+            const zoom = Math.round(this._map.getView().getZoom());
+            const center_ = this._map.getView().getCenter();
+            const projection = this._map.getView().getProjection().getCode();
+            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
+            if (this.props.onChangeMapState) {
+                this.props.onChangeMapState({zoom, center});
+            }
+        })
         this.updateCategoryClasses();
         this.updateMarkers();
     }
@@ -127,8 +148,15 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
             this.updateMarkers();
         }
 
+        const mapParams = this.props.settings['olmapcategories.mapParams'];
+        const prevMapParams = prevProps.settings['olmapcategories.mapParams'];
+
         if (!sameSize) {
             this._map.updateSize();
+        }
+
+        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+            this.updateMapState();
         }
     }
 
@@ -192,6 +220,14 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
 
             this._vectorLayer.getSource().addFeatures(features);
         }
+    }
+
+    updateMapState() {
+        const mapParams = this.props.settings['olmapcategories.mapParams'];
+        const projection = this._map.getView().getProjection().getCode();
+        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
+        this._map.getView().setZoom(mapParams[0]);
+        this._map.getView().setCenter(center);
     }
 
     geojsonToFeature(geojson) {

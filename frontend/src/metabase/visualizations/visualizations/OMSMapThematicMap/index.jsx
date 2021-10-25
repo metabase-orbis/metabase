@@ -14,6 +14,7 @@ import GeometryType from 'ol/geom/GeometryType';
 import WKB from 'ol/format/WKB';
 import { asArray as colorAsArray } from 'ol/color';
 import { Fill, Stroke, Circle, Style } from 'ol/style';
+import { transform } from 'ol/proj';
 
 import css from './style.css';
 
@@ -27,6 +28,7 @@ import { getUniqueValues, getValues } from 'metabase/visualizations/lib/oms/get-
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
 import geostats from 'metabase/visualizations/lib/oms/geostats';
 import { isNumeric } from "metabase/lib/schema_metadata";
+import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
 
 const Algorithm = Object.freeze({
     EqInterval: 0,
@@ -130,7 +132,15 @@ class OMSMapThematicMapComponent extends React.Component {
             default: 80,
             min: 0,
             max: 100
-        }
+        },
+        'olmapthematicmap.mapParams': {
+            title: 'Параметры карты',
+            widget: OMSInputGroup,
+            names: ['Масштаб', 'Координаты центра'],
+            default: [2, 0, 0],
+            types: ['number', 'number', 'number'],
+            setValueTitle: 'Текущая позиция карты'
+        },
     };
 
     static isSensible({ cols, rows }) {
@@ -138,6 +148,9 @@ class OMSMapThematicMapComponent extends React.Component {
     }
 
     componentDidMount() {
+        const mapParams = this.props.settings['olmapthematicmap.mapParams'].map(n => Number(n));
+        const [zoom, ...center] = mapParams;
+        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
         this._map = new OLMap({
             layers: [
                 new TileLayer({
@@ -147,11 +160,19 @@ class OMSMapThematicMapComponent extends React.Component {
             ],
             target: this._mapMountEl,
             view: new View({
-                center: [0, 0],
-                zoom: 2,
+                center: trCenter,
+                zoom: zoom || 2,
             }),
         });
-
+        this._map.on('moveend', () => {
+            const zoom = Math.round(this._map.getView().getZoom());
+            const center_ = this._map.getView().getCenter();
+            const projection = this._map.getView().getProjection().getCode();
+            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
+            if (this.props.onChangeMapState) {
+                this.props.onChangeMapState({zoom, center});
+            }
+        })
         this.updateCategoryClasses();
         this.updateMarkers();
     }
@@ -167,8 +188,14 @@ class OMSMapThematicMapComponent extends React.Component {
             this.updateMarkers();
         }
 
+        const mapParams = this.props.settings['olmapthematicmap.mapParams'];
+        const prevMapParams = prevProps.settings['olmapthematicmap.mapParams'];
+
         if (!sameSize) {
             this._map.updateSize();
+        }
+        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+            this.updateMapState();
         }
     }
 
@@ -338,6 +365,14 @@ class OMSMapThematicMapComponent extends React.Component {
 
             this._vectorLayer.getSource().addFeatures(features);
         }
+    }
+
+    updateMapState() {
+        const mapParams = this.props.settings['olmapthematicmap.mapParams'];
+        const projection = this._map.getView().getProjection().getCode();
+        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
+        this._map.getView().setZoom(mapParams[0]);
+        this._map.getView().setCenter(center);
     }
 
     render() {

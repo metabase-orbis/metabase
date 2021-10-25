@@ -23,6 +23,8 @@ import {
   getClickBehaviorSettings,
 } from "metabase/visualizations/lib/settings";
 
+import styles from './ChartSettings.css';
+
 // section names are localized
 const DEFAULT_TAB_PRIORITY = [t`Display`];
 
@@ -159,6 +161,7 @@ class ChartSettings extends Component {
       noPreview,
       children,
       setSidebarPropsOverride,
+      mapState
     } = this.props;
     const { currentWidget } = this.state;
 
@@ -249,17 +252,23 @@ class ChartSettings extends Component {
         optionValueFn={v => v}
         optionKeyFn={v => v}
         variant="bubble"
+        className={styles.ChartSettingsRadio}
+        style={{
+          flexWrap: 'wrap'
+        }}
       />
     );
-
-    const widgetList = visibleWidgets.map(widget => (
-      <ChartSettingsWidget
-        key={`${widget.id}`}
-        {...widget}
-        {...extraWidgetProps}
-        setSidebarPropsOverride={setSidebarPropsOverride}
-      />
-    ));
+    const widgetList = visibleWidgets.map(widget => {
+      const props = {
+        ...widget,
+        ...extraWidgetProps,
+        setSidebarPropsOverride
+      }
+      if (widget.id.includes('mapParams')) {
+        props.setValue = [ mapState.zoom, ...mapState.center ];
+      }
+      return <ChartSettingsWidget key={`${widget.id}`} {...props} />
+    });
 
     const onReset =
       !_.isEqual(settings, {}) && (settings || {}).virtual_card == null // resetting virtual cards wipes the text and broke the UI (metabase#14644)

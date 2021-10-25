@@ -1,0 +1,8 @@
+:local .ChartSettingsRadio {
+    flex-wrap: 'wrap';
+    margin-bottom: -10px;
+}
+
+:local .ChartSettingsRadio li {
+    margin-bottom: 10px;
+} 

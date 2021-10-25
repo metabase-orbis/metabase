@@ -9,6 +9,7 @@ import settings from "metabase/redux/settings";
 import undo from "metabase/redux/undo";
 // eslint-disable-next-line import/no-named-as-default
 import entities, { enhanceRequestsReducer } from "metabase/redux/entities";
+import mapState from 'metabase/redux/mapState';
 
 /* user */
 import { currentUser } from "metabase/redux/user";
@@ -23,4 +24,5 @@ export default {
   settings,
   undo,
   entities,
+  mapState
 };

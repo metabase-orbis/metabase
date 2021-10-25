@@ -54,6 +54,7 @@ export default class VisualizationResult extends Component {
       result,
       rawSeries,
       className,
+      onChangeMapState
     } = this.props;
     const { showCreateAlertModal } = this.state;
 
@@ -113,6 +114,7 @@ export default class VisualizationResult extends Component {
             this.props.onUpdateVisualizationSettings
           }
           query={this.props.query}
+          onChangeMapState={onChangeMapState}
         />
       );
     }

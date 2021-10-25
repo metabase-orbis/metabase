@@ -12,6 +12,7 @@ import Feature from 'ol/Feature';
 import PointGeom from 'ol/geom/Point';
 import { fromLonLat } from 'ol/proj';
 import View from 'ol/View';
+import { transform } from 'ol/proj';
 
 import {
     isNumeric,
@@ -25,7 +26,7 @@ import {
 import { columnSettings } from "metabase/visualizations/lib/settings/column";
 import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
-
+import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
 import styles from './style.css';
 
 import type { VisualizationProps } from "metabase-types/types/Visualization";
@@ -92,9 +93,21 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
             widget: "number",
             default: 0,
         },
+        'olmap.mapParams': {
+            section: 'Карта',
+            title: 'Параметры карты',
+            widget: OMSInputGroup,
+            names: ['Масштаб', 'Координаты центра'],
+            default: [2, 0, 0],
+            types: ['number', 'number', 'number'],
+            setValueTitle: 'Текущая позиция карты'
+        }
     };
 
     componentDidMount() {
+        const mapParams = this.props.settings['olmap.mapParams'].map(n => Number(n));
+        const [zoom, ...center] = mapParams;
+        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
         this._map = new Map({
             layers: [
                 new TileLayer({
@@ -104,11 +117,19 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
             ],
             target: this._mapMountEl,
             view: new View({
-                center: [0, 0],
-                zoom: 2,
-            }),
+                center: trCenter,
+                zoom: zoom || 2,
+            })
         });
-
+        this._map.on('moveend', () => {
+            const zoom = Math.round(this._map.getView().getZoom());
+            const center_ = this._map.getView().getCenter();
+            const projection = this._map.getView().getProjection().getCode();
+            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
+            if (this.props.onChangeMapState) {
+                this.props.onChangeMapState({zoom, center});
+            }
+        })
         this.updateMarkers();
         this.regenerateStyles();
     }
@@ -128,6 +149,9 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
 
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
 
+        const mapParams = this.props.settings['olmap.mapParams'];
+        const prevMapParams = prevProps.settings['olmap.mapParams'];
+
         if (!sameSeries) {
             this.updateMarkers();
         }
@@ -138,6 +162,9 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
 
         if (prevProps.settings !== this.props.settings) {
             this.regenerateStyles();
+        }
+        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+            this.updateMapState();
         }
     }
 
@@ -180,6 +207,14 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
                 this._pointVectorLayer.getSource().addFeature(pointFeature);
             }
         }
+    }
+
+    updateMapState() {
+        const mapParams = this.props.settings['olmap.mapParams'];
+        const projection = this._map.getView().getProjection().getCode();
+        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
+        this._map.getView().setZoom(mapParams[0]);
+        this._map.getView().setCenter(center);
     }
 
     render() {

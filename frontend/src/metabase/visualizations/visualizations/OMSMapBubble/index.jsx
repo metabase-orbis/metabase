@@ -15,6 +15,7 @@ import centerOfMass from '@turf/center-of-mass';
 import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
 import { Fill, Stroke, Circle, Style } from 'ol/style';
+import { transform } from 'ol/proj';
 import geostats from 'metabase/visualizations/lib/oms/geostats';
 
 import {
@@ -34,6 +35,7 @@ import { memoize } from 'metabase-lib/lib/utils';
 import { isNotGeomColumn, isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import { getUniqueValues, getValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
+import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
 
 import styles from './style.css';
 
@@ -130,9 +132,20 @@ class OMSMapBubbleComponent extends React.Component {
             max: 100,
             min: 1
         },
+        'omsmapbubble.mapParams': {
+            title: 'Параметры карты',
+            widget: OMSInputGroup,
+            names: ['Масштаб', 'Координаты центра'],
+            default: [2, 0, 0],
+            types: ['number', 'number', 'number'],
+            setValueTitle: 'Текущая позиция карты'
+        },
     };
 
     componentDidMount() {
+        const mapParams = this.props.settings['omsmapbubble.mapParams'].map(n => Number(n));
+        const [zoom, ...center] = mapParams;
+        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
         this._map = new OLMap({
             layers: [
                 new TileLayer({
@@ -142,11 +155,19 @@ class OMSMapBubbleComponent extends React.Component {
             ],
             target: this._mapMountEl,
             view: new View({
-                center: [0, 0],
-                zoom: 2,
-            }),
+                center: trCenter,
+                zoom: zoom || 2,
+            })
         });
-
+        this._map.on('moveend', () => {
+            const zoom = Math.round(this._map.getView().getZoom());
+            const center_ = this._map.getView().getCenter();
+            const projection = this._map.getView().getProjection().getCode();
+            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
+            if (this.props.onChangeMapState) {
+                this.props.onChangeMapState({zoom, center});
+            }
+        })
         this.updateCategoryClasses();
         this.updateMarkers();
     }
@@ -157,6 +178,9 @@ class OMSMapBubbleComponent extends React.Component {
             this.props.width === prevProps.width &&
             this.props.height === prevProps.height;
 
+        const mapParams = this.props.settings['omsmapbubble.mapParams'];
+        const prevMapParams = prevProps.settings['omsmapbubble.mapParams'];
+
         if (!sameSeries) {
             this.updateCategoryClasses();
             this.updateMarkers();
@@ -164,6 +188,9 @@ class OMSMapBubbleComponent extends React.Component {
 
         if (!sameSize) {
             this._map.updateSize();
+        }
+        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+            this.updateMapState();
         }
     }
 
@@ -266,6 +293,14 @@ class OMSMapBubbleComponent extends React.Component {
 
             this._vectorLayer.getSource().addFeatures(features);
         }
+    }
+
+    updateMapState() {
+        const mapParams = this.props.settings['omsmapbubble.mapParams'];
+        const projection = this._map.getView().getProjection().getCode();
+        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
+        this._map.getView().setZoom(mapParams[0]);
+        this._map.getView().setCenter(center);
     }
 
     getIconSizeForValue(value) {

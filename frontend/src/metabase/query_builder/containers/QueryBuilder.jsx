@@ -58,6 +58,7 @@ import { getMetadata } from "metabase/selectors/metadata";
 import { getUser, getUserIsAdmin } from "metabase/selectors/user";
 
 import * as actions from "../actions";
+import { updateMapState } from 'metabase/redux/mapState';
 import { push } from "react-router-redux";
 
 import Collections from "metabase/entities/collections";
@@ -146,12 +147,14 @@ const mapStateToProps = (state, props) => {
     nativeEditorSelectedText: getNativeEditorSelectedText(state),
     modalSnippet: getModalSnippet(state),
     snippetCollectionId: getSnippetCollectionId(state),
+    mapState: state.mapState
   };
 };
 
 const mapDispatchToProps = {
   ...actions,
   onChangeLocation: push,
+  onChangeMapState: updateMapState
 };
 
 @connect(
@@ -275,7 +278,7 @@ export default class QueryBuilder extends Component {
 
   render() {
     const {
-      uiControls: { modal, recentlySaved },
+      uiControls: { modal, recentlySaved }, onChangeMapState
     } = this.props;
 
     return (

@@ -1,0 +1,15 @@
+:local .omsInputGroupControl {
+    display: flex;
+    flex-direction: column;
+}
+:local .omsInputGroupInput {
+    margin-bottom: 5px;
+}
+
+:local .omsInputGroupButton {
+    padding: 12px 20px;
+}
+
+:local .omsInputGroupTitle {
+    margin: 10px 0;
+}
