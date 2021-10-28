@@ -24,7 +24,8 @@ import {
     isCountry,
 } from "metabase/lib/schema_metadata";
 import { columnSettings } from "metabase/visualizations/lib/settings/column";
-import { isSameSeries } from "metabase/visualizations/lib/utils";
+import { isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
+import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
 import styles from './style.css';
@@ -53,6 +54,7 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
 
     constructor(props: IOMSMapProps) {
         super(props);
+        this.onMapClick = this.onMapClick.bind(this);
     }
 
     static settings: { [k: string]: SettingDef; } = {
@@ -130,6 +132,7 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
                 this.props.onChangeMapState({zoom, center});
             }
         })
+        this.setInteractions();
         this.updateMarkers();
         this.regenerateStyles();
     }
@@ -168,6 +171,77 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
         }
     }
 
+    setInteractions() {
+        const {onHoverChange} = this.props;
+        this._map.on('pointermove', (e) => {
+            let feature = getOlFeatureOnPixel(this._map, e.pixel);
+            
+            if (feature) {
+                if (onHoverChange) {
+                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+                    onHoverChange(this.getObjectConfig(data, e));
+                }
+                this._mapMountEl.style.cursor = 'pointer';
+            } else {
+                if (onHoverChange) {
+                    onHoverChange(null);
+                }
+                this._mapMountEl.style.cursor = 'default';
+            }
+        });
+        
+        this._map.on('click', this.onMapClick)
+    }
+
+    getObjectConfig(featureData, e) {
+        const {series, settings, onVisualizationClick} = this.props;
+        if (!featureData) return null;
+        let data = [];
+        let dimensions = [];
+        let value = featureData['orbis_id'] || featureData['id'];
+        const seriesIndex = 0;
+        const seriesData = series[seriesIndex].data || {};
+        const cols = seriesData.cols;
+        data = cols.map((c) => ({
+            key: c.display_name || c.name,
+            value: featureData[c.name],
+            col: c
+        }));
+        dimensions = cols.map((c) => ({
+            column: c,
+            value: featureData[c.name]
+        }));
+        let column;
+        let possibleKeys = ['orbis_id', 'id', settings['olmap.latitude_column'], settings['olmap.longitude_column']];
+        let index = 0;
+        while (!column || index === possibleKeys.length) {
+            column = series[seriesIndex].data.cols.find(c => c.name === possibleKeys[index]);
+            index++;
+        }
+        
+        return {
+            index: -1,
+            element: null,
+            event: e.originalEvent,
+            data,
+            dimensions,
+            value,
+            column,
+            settings,
+            seriesIndex
+        }
+    }
+
+    onMapClick(e) {
+        const { onVisualizationClick } = this.props;
+        let feature = getOlFeatureOnPixel(this._map, e.pixel);
+        if (!feature) return;
+        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+        if (onVisualizationClick) {
+            onVisualizationClick(this.getObjectConfig(data, e));
+        }
+    }
+
     regenerateStyles() {
         this._pointVectorLayer.setStyle([
             new Style({
@@ -195,14 +269,17 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
         for (const serie of series) {
             const latitudeColumnIndex = _.findIndex(serie.data.cols, (column) => column.name === latitudeColumnName);
             const longitudeColumnIndex = _.findIndex(serie.data.cols, (column) => column.name === longitudeColumnName);
+            const idIndex = _.findIndex(serie.data.cols, isIdColumn)
 
             for (const row of serie.data.rows) {
                 const lat = row[latitudeColumnIndex];
                 const lon = row[longitudeColumnIndex];
+                const id = row[idIndex];
 
                 const pointFeature = new Feature({
                     geometry: new PointGeom(fromLonLat([lon, lat], 'EPSG:3857'))
                 });
+                pointFeature.set('id', id);
 
                 this._pointVectorLayer.getSource().addFeature(pointFeature);
             }
@@ -218,10 +295,12 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
     }
 
     render() {
+        const { onHoverChange } = this.props;
         return (
             <div
                 className={styles.omsMap}
                 ref={el => this._mapMountEl = el}
+                onMouseLeave={() => onHoverChange && onHoverChange(null)}
             ></div>
         );
     }

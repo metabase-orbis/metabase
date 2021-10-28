@@ -13,8 +13,8 @@ import { Fill, Stroke, Circle, Style } from 'ol/style';
 import Feature from 'ol/Feature';
 import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
-import { isSameSeries } from "metabase/visualizations/lib/utils";
-import { isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
+import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel  } from "metabase/visualizations/lib/utils";
+import { isGeomColumn, isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import { generateRainbow } from 'metabase/visualizations/lib/oms/colors';
 import View from 'ol/View';
 import { transform } from 'ol/proj';
@@ -105,6 +105,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
 
     constructor(props: IOMSMapProps) {
         super(props);
+        this.onMapClick = this.onMapClick.bind(this);
     }
 
     componentDidMount() {
@@ -133,6 +134,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
                 this.props.onChangeMapState({zoom, center});
             }
         })
+        this.setInteractions();
         this.updateCategoryClasses();
         this.updateMarkers();
     }
@@ -168,6 +170,73 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
         return !sameSize || !sameSeries;
     }
 
+    setInteractions() {
+        const {onHoverChange} = this.props;
+        this._map.on('pointermove', (e) => {
+            let feature = getOlFeatureOnPixel(this._map, e.pixel);
+            if (feature) {
+                if (onHoverChange) {
+                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+                    onHoverChange(this.getObjectConfig(data, e));
+                }
+                this._mapMountEl.style.cursor = 'pointer';
+            } else {
+                if (onHoverChange) {
+                    onHoverChange(null);
+                }
+                this._mapMountEl.style.cursor = 'default';
+            }
+        });
+        
+        this._map.on('click', this.onMapClick)
+    }
+
+    getObjectConfig(featureData, e) {
+        const {series, settings} = this.props;
+        if (!featureData) return null;
+        let data = [];
+        let dimensions = [];
+        let value = settings['olmapcategories.settings'] 
+            ? featureData[settings['olmapcategories.settings'].column]
+            : null;
+        const seriesIndex = 0;
+        const seriesData = series[seriesIndex].data || {};
+        const cols = seriesData.cols;
+        data = cols.map((c) => ({
+            key: c.display_name || c.name,
+            value: featureData[c.name],
+            col: c
+        }));
+        dimensions = cols.map((c) => ({
+            column: c,
+            value: featureData[c.name]
+        }));
+        const column = settings['olmapcategories.settings'] 
+            ? series[seriesIndex].data.cols.find(c => c.name === settings['olmapcategories.settings'].column) 
+            : null;
+        return {
+            index: -1,
+                element: null,
+                event: e.originalEvent,
+                data,
+                dimensions,
+                value,
+                column,
+                settings,
+                seriesIndex
+        }
+    }
+
+    onMapClick(e) {
+        const { onVisualizationClick } = this.props;
+        let feature = getOlFeatureOnPixel(this._map, e.pixel);
+        if (!feature) return;
+        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+        if (onVisualizationClick) {
+            onVisualizationClick(this.getObjectConfig(data, e));
+        }
+    }
+
     updateCategoryClasses() {
         const { cols, rows } = this.props.data;
         const settings: TCategoriesSettings = this.props.settings['olmapcategories.settings'] || {};
@@ -188,6 +257,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
         const { settings, series, data } = this.props;
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
+        const idColumnIndex = _.findIndex(cols, isIdColumn);
         this._vectorLayer.getSource().clear();
 
         if (geomColumnIndex === -1) {
@@ -201,7 +271,7 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
             }
 
             const geoJSON = row[geomColumnIndex];
-
+            const id = row[idColumnIndex];
             if (geoJSON === null) {
                 continue;
             }
@@ -213,8 +283,12 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
                     const opacity = this.props.settings['olmapcategories.opacity'] || 100;
 
                     feature.setStyle(this.generateStyleForColor(color, opacity));
+                    feature.set('id', id);
                 }
             } else {
+                for (const feature of features) {
+                    feature.set('id', id);
+                }
                 console.warn('this.selectedColumnIndex = ', this.selectedColumnIndex, settings);
             }
 
@@ -313,10 +387,12 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
     }
 
     render() {
+        const { onHoverChange } = this.props;
         return (
             <div
                 className={styles.omsMap}
                 ref={el => this._mapMountEl = el}
+                onMouseLeave={() => onHoverChange && onHoverChange(null)}
             ></div>
         );
     }

@@ -28,11 +28,11 @@ import {
     isCountry,
 } from "metabase/lib/schema_metadata";
 import { columnSettings } from "metabase/visualizations/lib/settings/column";
-import { isSameSeries } from "metabase/visualizations/lib/utils";
+import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { OMSNumberRange } from 'metabase/visualizations/components/settings/OMSNumberRange';
 import { memoize } from 'metabase-lib/lib/utils';
-import { isNotGeomColumn, isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
+import { isNotGeomColumn, isGeomColumn, isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import { getUniqueValues, getValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
@@ -78,6 +78,7 @@ class OMSMapBubbleComponent extends React.Component {
 
     constructor(props) {
         super(props);
+        this.onMapClick = this.onMapClick.bind(this);
     }
 
     static settings = {
@@ -168,6 +169,7 @@ class OMSMapBubbleComponent extends React.Component {
                 this.props.onChangeMapState({zoom, center});
             }
         })
+        this.setInteractions();
         this.updateCategoryClasses();
         this.updateMarkers();
     }
@@ -200,6 +202,70 @@ class OMSMapBubbleComponent extends React.Component {
             this.props.height === nextProps.height;
         const sameSeries = isSameSeries(this.props.series, nextProps.series);
         return !sameSize || !sameSeries;
+    }
+
+    setInteractions() {
+        const {onHoverChange} = this.props;
+        this._map.on('pointermove', (e) => {
+            let feature = getOlFeatureOnPixel(this._map, e.pixel);
+            if (feature) {
+                if (onHoverChange) {
+                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+                    onHoverChange(this.getObjectConfig(data, e));
+                }
+                this._mapMountEl.style.cursor = 'pointer';
+            } else {
+                if (onHoverChange) {
+                    onHoverChange(null);
+                }
+                this._mapMountEl.style.cursor = 'default';
+            }
+        });
+        
+        this._map.on('click', this.onMapClick)
+    }
+
+    getObjectConfig(featureData, e) {
+        const {series, settings, onVisualizationClick} = this.props;
+        if (!featureData) return null;
+        let data = [];
+        let dimensions = [];
+        let value = featureData[settings['omsmapbubble.column']];
+        const seriesIndex = 0;
+        const seriesData = series[seriesIndex].data || {};
+        const cols = seriesData.cols;
+        data = cols.map((c) => ({
+            key: c.display_name || c.name,
+            value: featureData[c.name],
+            col: c
+        }));
+        dimensions = cols.map((c) => ({
+            column: c,
+            value: featureData[c.name]
+        }));
+        const column = series[seriesIndex].data.cols.find(c => c.name === settings['omsmapbubble.column'])
+        
+        return {
+            index: -1,
+                element: null,
+                event: e.originalEvent,
+                data,
+                dimensions,
+                value,
+                column,
+                settings,
+                seriesIndex
+        }
+    }
+
+    onMapClick(e) {
+        const { onVisualizationClick } = this.props;
+        let feature = getOlFeatureOnPixel(this._map, e.pixel);
+        if (!feature) return;
+        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+        if (onVisualizationClick) {
+            onVisualizationClick(this.getObjectConfig(data, e));
+        }
     }
 
     updateCategoryClasses() {
@@ -260,6 +326,7 @@ class OMSMapBubbleComponent extends React.Component {
         const { settings, series, data } = this.props;
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
+        const idColumnIndex = _.findIndex(cols, isIdColumn);
         this._vectorLayer.getSource().clear();
 
         if (geomColumnIndex === -1) {
@@ -269,6 +336,7 @@ class OMSMapBubbleComponent extends React.Component {
 
         for (const row of rows) {
             const geoJSON = row[geomColumnIndex];
+            const id = row[idColumnIndex];
             const rowValue = row[this.selectedColumnIndex];
 
             if (geoJSON === null || typeof rowValue !== 'number') {
@@ -286,8 +354,12 @@ class OMSMapBubbleComponent extends React.Component {
                     const iconRadius = this.getIconSizeForValue(rowValue);
 
                     feature.setStyle(this.generateStyleForColor(color, opacity, iconRadius));
+                    feature.set('id', id);
                 }
             } else {
+                for (const feature of features) {
+                    feature.set('id', id);
+                }
                 console.warn('this.selectedColumnIndex = ', this.selectedColumnIndex, settings);
             }
 
@@ -345,10 +417,12 @@ class OMSMapBubbleComponent extends React.Component {
     }
 
     render() {
+        const {onHoverChange} = this.props;
         return (
             <div
                 className={styles.omsMap}
                 ref={el => this._mapMountEl = el}
+                onMouseLeave={() => onHoverChange && onHoverChange(null)}
             ></div>
         );
     }

@@ -335,3 +335,34 @@ export function computeMaxDecimalsForValues(values, options) {
     return undefined;
   }
 }
+
+export function getOlFeatureOnPixel(map, pixel, options = {}) {
+  let feature;
+  map.forEachFeatureAtPixel(pixel, (f) => {
+    feature = f;
+  }, options);
+  return feature;
+}
+
+export function getOlFeatureInfoFromSeries(feature, series, pretty = false) {
+  const id = feature.get('id');
+  const data = {};
+  let isEmpty = true;
+  for (const serie of series) {
+      const row = serie.data.rows.find(c => c[0] === id);
+      if (row) {
+          serie.data.cols.forEach((c, i) => {
+              let name = c.name;
+              if (pretty) {
+                name = c.display_name || c.name;
+                if (c.name === 'orbis_id' || c.name === 'geom') return;
+              }
+              data[name] = row[i];
+              isEmpty = false;
+          });
+      }
+      
+  }
+  if (isEmpty) return null;
+  return data;
+}

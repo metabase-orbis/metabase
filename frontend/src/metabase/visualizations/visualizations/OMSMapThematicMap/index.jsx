@@ -20,8 +20,8 @@ import css from './style.css';
 
 import { Row } from 'metabase-types/types/Dataset';
 import { memoize } from 'metabase-lib/lib/utils';
-import { isNotGeomColumn, isGeomColumn } from 'metabase/visualizations/lib/oms/column-filters';
-import { isSameSeries } from "metabase/visualizations/lib/utils";
+import { isNotGeomColumn, isGeomColumn, isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
+import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { OMSThematicMapColorScheme, getColorTheme } from 'metabase/visualizations/components/settings/OMSThematicMapColorScheme';
 import { getUniqueValues, getValues } from 'metabase/visualizations/lib/oms/get-values';
@@ -147,6 +147,11 @@ class OMSMapThematicMapComponent extends React.Component {
         return true;
     }
 
+    constructor(props) {
+        super(props);
+        this.onMapClick = this.onMapClick.bind(this);
+    }
+
     componentDidMount() {
         const mapParams = this.props.settings['olmapthematicmap.mapParams'].map(n => Number(n));
         const [zoom, ...center] = mapParams;
@@ -173,6 +178,7 @@ class OMSMapThematicMapComponent extends React.Component {
                 this.props.onChangeMapState({zoom, center});
             }
         })
+        this.setInteractions();
         this.updateCategoryClasses();
         this.updateMarkers();
     }
@@ -205,6 +211,70 @@ class OMSMapThematicMapComponent extends React.Component {
             this.props.height === nextProps.height;
         const sameSeries = isSameSeries(this.props.series, nextProps.series);
         return !sameSize || !sameSeries;
+    }
+
+    setInteractions() {
+        const {onHoverChange} = this.props;
+        this._map.on('pointermove', (e) => {
+            let feature = getOlFeatureOnPixel(this._map, e.pixel);
+            if (feature) {
+                if (onHoverChange) {
+                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+                    onHoverChange(this.getObjectConfig(data, e));
+                }
+                this._mapMountEl.style.cursor = 'pointer';
+            } else {
+                if (onHoverChange) {
+                    onHoverChange(null);
+                }
+                this._mapMountEl.style.cursor = 'default';
+            }
+        });
+        
+        this._map.on('click', this.onMapClick)
+    }
+
+    getObjectConfig(featureData, e) {
+        const {series, settings, onVisualizationClick} = this.props;
+        if (!featureData) return null;
+        let data = [];
+        let dimensions = [];
+        let value = featureData[settings['olmapthematicmap.column']];
+        const seriesIndex = 0;
+        const seriesData = series[seriesIndex].data || {};
+        const cols = seriesData.cols;
+        data = cols.map((c) => ({
+            key: c.display_name || c.name,
+            value: featureData[c.name],
+            col: c
+        }));
+        dimensions = cols.map((c) => ({
+            column: c,
+            value: featureData[c.name]
+        }));
+        const column = series[seriesIndex].data.cols.find(c => c.name === settings['olmapthematicmap.column'])
+        
+        return {
+            index: -1,
+                element: null,
+                event: e.originalEvent,
+                data,
+                dimensions,
+                value,
+                column,
+                settings,
+                seriesIndex
+        }
+    }
+
+    onMapClick(e) {
+        const { onVisualizationClick } = this.props;
+        let feature = getOlFeatureOnPixel(this._map, e.pixel);
+        if (!feature) return;
+        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+        if (onVisualizationClick) {
+            onVisualizationClick(this.getObjectConfig(data, e));
+        }
     }
 
     updateCategoryClasses() {
@@ -336,6 +406,7 @@ class OMSMapThematicMapComponent extends React.Component {
 
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
+        const idColumnIndex = _.findIndex(cols, isIdColumn);
         this._vectorLayer.getSource().clear();
 
         if (geomColumnIndex === -1) {
@@ -345,6 +416,7 @@ class OMSMapThematicMapComponent extends React.Component {
 
         for (const row of rows) {
             const geoJSON = row[geomColumnIndex];
+            const id = row[idColumnIndex];
 
             if (geoJSON === null) {
                 continue;
@@ -356,10 +428,14 @@ class OMSMapThematicMapComponent extends React.Component {
                 for (const feature of features) {
                     const color = this.getColorForValue(row[this.selectedColumnIndex]);
                     const opacity = this.props.settings['olmapthematicmap.opacity'] || 100;
-
+                    
                     feature.setStyle(this.generateStyleForColor(color, opacity));
+                    feature.set('id', id);
                 }
             } else {
+                for (const feature of features) {
+                    feature.set('id', id);
+                }
                 console.warn('this.selectedColumnIndex = ', this.selectedColumnIndex, settings);
             }
 
@@ -376,10 +452,12 @@ class OMSMapThematicMapComponent extends React.Component {
     }
 
     render() {
+        const { onHoverChange } = this.props;
         return (
             <div
                 className={css.omsMap}
                 ref={el => this._mapMountEl = el}
+                onMouseLeave={() => onHoverChange && onHoverChange(null)}
             ></div>
         );
     }
