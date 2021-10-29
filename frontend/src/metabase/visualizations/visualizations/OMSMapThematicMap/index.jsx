@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
+import { t, jt } from "ttag";
 import _ from 'underscore';
 import chroma from "chroma-js";
 import OLMap from 'ol/Map';
@@ -98,8 +99,10 @@ class OMSMapThematicMapComponent extends React.Component {
         'olmapthematicmap.classes_num': {
             title: 'Количество классов',
             widget: "number",
-            default: 9,
-            max: 100,
+            default: 0,
+            getProps: ([{ card, data }]) => ({
+                max: data.rows.length - 1
+            }),
             min: 0
         },
 
@@ -145,6 +148,12 @@ class OMSMapThematicMapComponent extends React.Component {
 
     static isSensible({ cols, rows }) {
         return true;
+    }
+
+    static checkRenderable([{ data, card }], settings, query) {
+        if (data.rows.length <= settings['olmapthematicmap.classes_num']) {
+            throw new Error( t`The number of classes should not exceed the number of rows`);
+        }
     }
 
     constructor(props) {

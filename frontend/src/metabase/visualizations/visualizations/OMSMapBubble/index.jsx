@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
+import { t, jt } from "ttag";
 import _ from 'underscore';
 import OLMap from 'ol/Map';
 import OSM from 'ol/source/OSM';
@@ -76,6 +77,12 @@ class OMSMapBubbleComponent extends React.Component {
         return true;
     }
 
+    static checkRenderable([{ data, card }], settings, query) {
+        if (data.rows.length <= settings['omsmapbubble.classes_num']) {
+            throw new Error( t`The number of classes should not exceed the number of rows`);
+        }
+    }
+
     constructor(props) {
         super(props);
         this.onMapClick = this.onMapClick.bind(this);
@@ -121,8 +128,10 @@ class OMSMapBubbleComponent extends React.Component {
         'omsmapbubble.classes_num': {
             title: 'Количество классов',
             widget: "number",
-            default: 9,
-            max: 100,
+            default: 0,
+            getProps: ([{ card, data }]) => ({
+                max: data.rows.length
+            }),
             min: 0
         },
 
