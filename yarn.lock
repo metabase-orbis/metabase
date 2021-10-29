@@ -1485,18 +1485,26 @@
   dependencies:
     "@babel/runtime" "^7.12.5"
 
-"@turf/center-of-mass@^6.5.0":
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/@turf/center-of-mass/-/center-of-mass-6.5.0.tgz#f9e6988bc296b7f763a0137ad6095f54843cf06a"
-  integrity sha512-EWrriU6LraOfPN7m1jZi+1NLTKNkuIsGLZc2+Y8zbGruvUW+QV7K0nhf7iZWutlxHXTBqEXHbKue/o79IumAsQ==
+"@turf/center-of-mass@6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/center-of-mass/-/center-of-mass-6.4.0.tgz#d3c16454e8e3d7aa881fc6a882456761de364543"
+  integrity sha512-iS9JAn4LIJXeZez1/cNUTQQcskiOpyKOPZ5F9Dkh1v8uY3U8w+XSTerWmjf/MGAzZ9Mc+IiKkNpIoHm278q+gA==
   dependencies:
-    "@turf/centroid" "^6.5.0"
-    "@turf/convex" "^6.5.0"
-    "@turf/helpers" "^6.5.0"
-    "@turf/invariant" "^6.5.0"
-    "@turf/meta" "^6.5.0"
+    "@turf/centroid" "^6.4.0"
+    "@turf/convex" "^6.4.0"
+    "@turf/helpers" "^6.4.0"
+    "@turf/invariant" "^6.4.0"
+    "@turf/meta" "^6.4.0"
 
-"@turf/centroid@^6.5.0":
+"@turf/centroid@6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/centroid/-/centroid-6.4.0.tgz#4624a07c0b7eca9f0c2b4eb8e45bc6f88306626a"
+  integrity sha512-p78MVeJ3InVZzkBP4rpoWTUspsRqsW6a/fGuigfjizHz+YqTRXyG7HDkqoR8IwLwpQC83Nlw5kyacgMlgEbN+Q==
+  dependencies:
+    "@turf/helpers" "^6.4.0"
+    "@turf/meta" "^6.4.0"
+
+"@turf/centroid@^6.4.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@turf/centroid/-/centroid-6.5.0.tgz#ecaa365412e5a4d595bb448e7dcdacfb49eb0009"
   integrity sha512-MwE1oq5E3isewPprEClbfU5pXljIK/GUOMbn22UM3IFPDJX0KeoyLNwghszkdmFp/qMGL/M13MMWvU+GNLXP/A==
@@ -1511,7 +1519,7 @@
   dependencies:
     "@turf/helpers" "^6.5.0"
 
-"@turf/convex@^6.5.0":
+"@turf/convex@^6.4.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@turf/convex/-/convex-6.5.0.tgz#a7613e0d3795e2f5b9ce79a39271e86f54a3d354"
   integrity sha512-x7ZwC5z7PJB0SBwNh7JCeCNx7Iu+QSrH7fYgK0RhhNop13TqUlvHMirMLRgf2db1DqUetrAO2qHJeIuasquUWg==
@@ -1520,19 +1528,19 @@
     "@turf/meta" "^6.5.0"
     concaveman "*"
 
-"@turf/helpers@^6.5.0":
+"@turf/helpers@^6.4.0", "@turf/helpers@^6.5.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-6.5.0.tgz#f79af094bd6b8ce7ed2bd3e089a8493ee6cae82e"
   integrity sha512-VbI1dV5bLFzohYYdgqwikdMVpe7pJ9X3E+dlr425wa2/sMJqYDhTO++ec38/pcPvPE6oD9WEEeU3Xu3gza+VPw==
 
-"@turf/invariant@^6.5.0":
+"@turf/invariant@^6.4.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@turf/invariant/-/invariant-6.5.0.tgz#970afc988023e39c7ccab2341bd06979ddc7463f"
   integrity sha512-Wv8PRNCtPD31UVbdJE/KVAWKe7l6US+lJItRR/HOEW3eh+U/JwRCSUl/KZ7bmjM/C+zLNoreM2TU6OoLACs4eg==
   dependencies:
     "@turf/helpers" "^6.5.0"
 
-"@turf/meta@^6.5.0":
+"@turf/meta@^6.4.0", "@turf/meta@^6.5.0":
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/@turf/meta/-/meta-6.5.0.tgz#b725c3653c9f432133eaa04d3421f7e51e0418ca"
   integrity sha512-RrArvtsV0vdsCBegoBtOalgdSOfkBrTJ07VkpiCnq/491W67hnMWmDu7e6Ztw0C3WldRYTXkg3SumfdzZxLBHA==
@@ -4757,12 +4765,12 @@ concat-stream@~1.5.0:
     typedarray "~0.0.5"
 
 concaveman@*:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/concaveman/-/concaveman-1.2.0.tgz#4340f27c08a11bdc1d5fac13476862a2ab09b703"
-  integrity sha512-OcqechF2/kubbffomKqjGEkb0ndlYhEbmyg/fxIGqdfYp5AZjD2Kl5hc97Hh3ngEuHU2314Z4KDbxL7qXGWrQQ==
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/concaveman/-/concaveman-1.2.1.tgz#47d20b4521125c15fabf453653c2696d9ee41e0b"
+  integrity sha512-PwZYKaM/ckQSa8peP5JpVr7IMJ4Nn/MHIaWUjP4be+KoZ7Botgs8seAZGpmaOM+UZXawcdYRao/px9ycrCihHw==
   dependencies:
-    point-in-polygon "^1.0.1"
-    rbush "^3.0.0"
+    point-in-polygon "^1.1.0"
+    rbush "^3.0.1"
     robust-predicates "^2.0.4"
     tinyqueue "^2.0.3"
 
@@ -11454,7 +11462,7 @@ plural-forms@0.3.3:
   resolved "https://registry.yarnpkg.com/plural-forms/-/plural-forms-0.3.3.tgz#22d9cddf3fe50d7f6930e3aa1eea339bdc27e152"
   integrity sha512-9CEFxpHa1KrtZFoa0FybZcxyDx1ceWelowtlSWtFsmRzBgQ9Dj47YmyY6cynPAJUoA/kLm2B7VYi0CfNIDZnCw==
 
-point-in-polygon@^1.0.1:
+point-in-polygon@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/point-in-polygon/-/point-in-polygon-1.1.0.tgz#b0af2616c01bdee341cbf2894df643387ca03357"
   integrity sha512-3ojrFwjnnw8Q9242TzgXuTD+eKiutbzyslcq1ydfu82Db2y+Ogbmyrkpv0Hgj31qwT3lbS9+QAAO/pIQM35XRw==
@@ -12439,7 +12447,7 @@ raw-body@~1.1.0:
     bytes "1"
     string_decoder "0.10"
 
-rbush@^3.0.0, rbush@^3.0.1:
+rbush@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/rbush/-/rbush-3.0.1.tgz#5fafa8a79b3b9afdfe5008403a720cc1de882ecf"
   integrity sha512-XRaVO0YecOpEuIvbhbpTrZgoiI6xBlz6hnlr6EHhd+0x9ase6EmeN+hdwwUaJvLcsFFQ8iWVF1GAK1yB0BWi0w==
