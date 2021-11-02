@@ -78,8 +78,10 @@ class OMSMapBubbleComponent extends React.Component {
     }
 
     static checkRenderable([{ data, card }], settings, query) {
-        if (data.rows.length <= settings['omsmapbubble.classes_num']) {
-            throw new Error( t`The number of classes should not exceed the number of rows`);
+        const selectedColumnIndex = getColumnIndexByName(data.cols, settings['omsmapbubble.column']);
+        const uniqValues = getUniqueValues(data.rows, selectedColumnIndex);
+        if (uniqValues.length <= settings['omsmapbubble.classes_num']) {
+            throw new Error( t`The number of classes should not exceed the number of unique values.`);
         }
     }
 
