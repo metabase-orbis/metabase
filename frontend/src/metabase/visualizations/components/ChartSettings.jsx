@@ -37,6 +37,7 @@ const withTransientSettingState = ComposedComponent =>
       super(props);
       this.state = {
         settings: props.settings,
+        mapState: {zoom: 2, center: [ 0, 0 ]}
       };
     }
 
@@ -55,6 +56,8 @@ const withTransientSettingState = ComposedComponent =>
           onDone={settings =>
             this.props.onChange(settings || this.state.settings)
           }
+          onChangeMapState={(state) => this.setState({ mapState: state })}
+          mapState={this.state.mapState}
         />
       );
     }
@@ -161,7 +164,8 @@ class ChartSettings extends Component {
       noPreview,
       children,
       setSidebarPropsOverride,
-      mapState
+      mapState,
+      onChangeMapState
     } = this.props;
     const { currentWidget } = this.state;
 
@@ -265,7 +269,7 @@ class ChartSettings extends Component {
         setSidebarPropsOverride
       }
       if (widget.id.includes('mapParams')) {
-        props.setValue = [ mapState.zoom, ...mapState.center ];
+        props.setValue = mapState ? [ mapState.zoom, ...mapState.center ] : [2, 0, 0];
       }
       return <ChartSettingsWidget key={`${widget.id}`} {...props} />
     });
@@ -335,6 +339,7 @@ class ChartSettings extends Component {
                   showWarnings
                   onUpdateVisualizationSettings={this.handleChangeSettings}
                   onUpdateWarnings={warnings => this.setState({ warnings })}
+                  onChangeMapState={onChangeMapState}
                 />
               </div>
               <ChartSettingsFooter
