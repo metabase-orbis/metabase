@@ -9,7 +9,7 @@ import Projection from 'ol/proj/Projection';
 import centerOfMass from '@turf/center-of-mass';
 import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
-import { Fill, Stroke, Circle, Style } from 'ol/style';
+import { Fill, Stroke, Circle, Style, Text } from 'ol/style';
 import { transform } from 'ol/proj';
 import geostats from 'metabase/visualizations/lib/oms/geostats';
 
@@ -122,6 +122,32 @@ class OMSMapBubbleComponent extends OMSOlMap {
             max: 100,
             min: 1
         },
+        'omsmapbubble.show-label': {
+            section: 'Подпись',
+            title: 'Показывать подпись',
+            widget: "toggle",
+            default: false,
+        },
+        ...fieldSetting("omsmapbubble.label_column", {
+            section: 'Подпись',
+            title: 'Колонка',
+            getDefault: ([{ data }]) => data.cols[0].name,
+        }),
+        'omsmapbubble.label_font_size': {
+            section: 'Подпись',
+            title: 'Размер шрифта',
+            widget: 'number',
+            default: 14,
+        },
+        'omsmapbubble.label_color': {
+            section: 'Подпись',
+            title: 'Цвет',
+            widget: 'color',
+            default: '#000000',
+            getProps: () => ({
+                fancy: true,
+            })
+        },
         'omsmapbubble.mapParams': {
             section: 'Карта',
             title: 'Параметры карты',
@@ -130,7 +156,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
             default: [2, 0, 0],
             types: ['number', 'number', 'number'],
             setValueTitle: 'Текущая позиция карты'
-        },
+        }
     };
 
     componentDidMount() {
@@ -209,17 +235,34 @@ class OMSMapBubbleComponent extends OMSOlMap {
      * @param {number} radius
      */
     @memoize
-    generateStyleForColor(color, opacity, radius) {
+    generateStyleForColor(color, opacity, radius, showLabel, label, labelSize, labelColor) {
         const [r, g, b, a] = colorAsArray(color);
         const colorWithOpacity = [r, g, b, opacity / 100];
 
+        const textStyle = showLabel 
+        ? new Text({
+            font: `${labelSize}px sans-serif`,
+            text: label,
+            fill:  new Fill({
+                color: labelColor
+            }),
+            stroke: new Stroke({
+                color: '#ffffff',
+                width: 0.5
+            }),
+        }) : null;
         return new Style({
             image: new Circle({
                 fill: new Fill({
                     color: colorWithOpacity
                 }),
+                stroke: new Stroke({
+                    color: '#ffffff',
+                    width: 1
+                }),
                 radius: radius
             }),
+            text: textStyle
         });
     }
 
@@ -228,7 +271,11 @@ class OMSMapBubbleComponent extends OMSOlMap {
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         const idColumnIndex = _.findIndex(cols, isIdColumn);
+        const labelIndex = _.findIndex(cols, (column) => column.name === settings['omsmapbubble.label_column']);
         this._vectorLayer.getSource().clear();
+        const showLabel = settings['omsmapbubble.show-label'];
+        const labelFontSize = settings['omsmapbubble.label_font_size'];
+        const labelColor = settings['omsmapbubble.label_color'];
 
         if (geomColumnIndex === -1) {
             console.error('Ошибка получения колонки геометрии');
@@ -239,6 +286,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
             const geoJSON = row[geomColumnIndex];
             const id = row[idColumnIndex];
             const rowValue = row[this.selectedColumnIndex];
+            const label = String(row[labelIndex]);
 
             if (geoJSON === null || typeof rowValue !== 'number') {
                 continue;
@@ -251,10 +299,10 @@ class OMSMapBubbleComponent extends OMSOlMap {
                 for (const feature of features) {
                     const color = this.props.settings['omsmapbubble.icon_color'];
                     const opacity = this.props.settings['omsmapbubble.opacity'];
-
+                    
                     const iconRadius = this.getIconSizeForValue(rowValue);
 
-                    feature.setStyle(this.generateStyleForColor(color, opacity, iconRadius));
+                    feature.setStyle(this.generateStyleForColor(color, opacity, iconRadius, showLabel, label, labelFontSize, labelColor));
                     feature.set('id', id);
                 }
             } else {

@@ -16,7 +16,6 @@ export const PieFieldRow = ({
 }) => {
     
     const onSelectChangeWrapper = React.useCallback(({ target }) => {
-        console.log(target);
         onSelectChange(target.value, columnValue);
     }, [ onSelectChange, columnValue ]);
 

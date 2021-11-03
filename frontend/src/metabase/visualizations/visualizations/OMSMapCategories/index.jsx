@@ -4,7 +4,7 @@ import _ from 'underscore';
 import GeoJSONFormatter from 'ol/format/GeoJSON';
 import WKB from 'ol/format/WKB';
 import Projection from 'ol/proj/Projection';
-import { Fill, Stroke, Circle, Style } from 'ol/style';
+import { Fill, Stroke, Circle, Style, Text } from 'ol/style';
 import Feature from 'ol/Feature';
 import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
@@ -22,6 +22,7 @@ import styles from './style.css';
 
 import type { VisualizationProps } from "metabase-types/types/Visualization";
 import type { SettingDef } from 'metabase/visualizations/lib/settings';
+import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
 import { getUniqueValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
@@ -36,6 +37,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
     static settings: { [k: string]: SettingDef; } = {
         'olmapcategories.settings': {
+            section: 'Данные',
             title: 'Классы',
             widget: OMSCategoryClassesSettings,
             getProps: (
@@ -53,13 +55,41 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         },
 
         'olmapcategories.opacity': {
+            section: 'Данные',
             title: 'Непрозрачность',
             widget: "number",
             default: 80,
             min: 0,
             max: 100
         },
+        'olmapcategories.show-label': {
+            section: 'Подпись',
+            title: 'Показывать подпись',
+            widget: "toggle",
+            default: false,
+        },
+        ...fieldSetting("olmapcategories.label_column", {
+            section: 'Подпись',
+            title: 'Колонка',
+            getDefault: ([{ data }]) => data.cols[0].name,
+        }),
+        'olmapcategories.label_font_size': {
+            section: 'Подпись',
+            title: 'Размер шрифта',
+            widget: 'number',
+            default: 14,
+        },
+        'olmapcategories.label_color': {
+            section: 'Подпись',
+            title: 'Цвет',
+            widget: 'color',
+            default: '#000000',
+            getProps: () => ({
+                fancy: true,
+            })
+        },
         'olmapcategories.mapParams': {
+            section: 'Карта',
             title: 'Параметры карты',
             widget: OMSInputGroup,
             names: ['Масштаб', 'Координаты центра'],
@@ -159,6 +189,10 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         const idColumnIndex = _.findIndex(cols, isIdColumn);
+        const labelIndex = _.findIndex(cols, (column) => column.name === settings['olmapcategories.label_column']);
+        const showLabel = settings['olmapcategories.show-label'];
+        const labelFontSize = settings['olmapcategories.label_font_size'];
+        const labelColor = settings['olmapcategories.label_color'];
         this._vectorLayer.getSource().clear();
 
         if (geomColumnIndex === -1) {
@@ -173,6 +207,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
             const geoJSON = row[geomColumnIndex];
             const id = row[idColumnIndex];
+            const label = String(row[labelIndex]);
             if (geoJSON === null) {
                 continue;
             }
@@ -183,7 +218,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
                     const color = this.getRainbowColorForRow(row);
                     const opacity = this.props.settings['olmapcategories.opacity'] || 100;
 
-                    feature.setStyle(this.generateStyleForColor(color, opacity));
+                    feature.setStyle(this.generateStyleForColor(color, opacity, showLabel, label, labelFontSize, labelColor));
                     feature.set('id', id);
                 }
             } else {
@@ -209,9 +244,22 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
     }
 
     @memoize
-    generateStyleForColor(color: string, opacity: number) {
+    generateStyleForColor(color: string, opacity: number, showLabel, label, labelSize, labelColor) {
         const [r, g, b, a] = colorAsArray(color);
         const colorWithOpacity = [r, g, b, opacity / 100];
+
+        const textStyle = showLabel 
+        ?  new Text({
+            font: `${labelSize}px sans-serif`,
+            text: label,
+            fill:  new Fill({
+                color: labelColor
+            }),
+            stroke: new Stroke({
+                color: '#ffffff',
+                width: 0.5
+            }),
+        }) : null;
 
         const styles = {};
         styles[GeometryType.LINE_STRING] = [
@@ -219,7 +267,8 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
                 stroke: new Stroke({
                     color: colorWithOpacity,
                     width: 2
-                })
+                }),
+                text: textStyle
             })
         ];
         styles[GeometryType.MULTI_LINE_STRING] = styles[GeometryType.LINE_STRING];
@@ -230,8 +279,13 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
                     fill: new Fill({
                         color: colorWithOpacity
                     }),
-                    radius: 5
+                    radius: 5,
+                    stroke: new Stroke({
+                        color: '#ffffff',
+                        width: 0.5
+                    }),
                 }),
+                text: textStyle
             })
         ];
         styles[GeometryType.MULTI_POINT] = styles[GeometryType.POINT];
@@ -240,7 +294,8 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             new Style({
                 fill: new Fill({
                     color: colorWithOpacity
-                })
+                }),
+                text: textStyle
             })
         ];
         styles[GeometryType.MULTI_POLYGON] = styles[GeometryType.POLYGON];

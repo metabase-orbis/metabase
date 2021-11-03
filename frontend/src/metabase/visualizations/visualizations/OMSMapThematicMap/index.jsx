@@ -8,7 +8,7 @@ import Projection from 'ol/proj/Projection';
 import GeometryType from 'ol/geom/GeometryType';
 import WKB from 'ol/format/WKB';
 import { asArray as colorAsArray } from 'ol/color';
-import { Fill, Stroke, Circle, Style } from 'ol/style';
+import { Fill, Stroke, Circle, Style, Text } from 'ol/style';
 import { transform } from 'ol/proj';
 
 import css from './style.css';
@@ -124,6 +124,32 @@ class OMSMapThematicMapComponent extends OMSOlMap {
             default: 80,
             min: 0,
             max: 100
+        },
+        'olmapthematicmap.show-label': {
+            section: 'Подпись',
+            title: 'Показывать подпись',
+            widget: "toggle",
+            default: false,
+        },
+        ...fieldSetting("olmapthematicmap.label_column", {
+            section: 'Подпись',
+            title: 'Колонка',
+            getDefault: ([{ data }]) => data.cols[0].name,
+        }),
+        'olmapthematicmap.label_font_size': {
+            section: 'Подпись',
+            title: 'Размер шрифта',
+            widget: 'number',
+            default: 14,
+        },
+        'olmapthematicmap.label_color': {
+            section: 'Подпись',
+            title: 'Цвет',
+            widget: 'color',
+            default: '#000000',
+            getProps: () => ({
+                fancy: true,
+            })
         },
         'olmapthematicmap.mapParams': {
             section: 'Карта',
@@ -267,9 +293,22 @@ class OMSMapThematicMapComponent extends OMSOlMap {
      * @returns {(feature: import('ol/Feature')) => import('ol/style/Style')[]}
      */
     @memoize
-    generateStyleForColor(color, opacity) {
+    generateStyleForColor(color, opacity, showLabel, label, labelSize, labelColor) {
         const [r, g, b, a] = colorAsArray(color);
         const colorWithOpacity = [r, g, b, opacity / 100];
+
+        const textStyle = showLabel 
+        ?  new Text({
+            font: `${labelSize}px sans-serif`,
+            text: label,
+            fill:  new Fill({
+                color: labelColor
+            }),
+            stroke: new Stroke({
+                color: '#ffffff',
+                width: 0.5
+            }),
+        }) : null;
 
         const styles = {};
         styles[GeometryType.LINE_STRING] = [
@@ -277,7 +316,8 @@ class OMSMapThematicMapComponent extends OMSOlMap {
                 stroke: new Stroke({
                     color: colorWithOpacity,
                     width: 2
-                })
+                }),
+                text: textStyle
             })
         ];
         styles[GeometryType.MULTI_LINE_STRING] = styles[GeometryType.LINE_STRING];
@@ -290,6 +330,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
                     }),
                     radius: 5
                 }),
+                text: textStyle
             })
         ];
         styles[GeometryType.MULTI_POINT] = styles[GeometryType.POINT];
@@ -298,7 +339,8 @@ class OMSMapThematicMapComponent extends OMSOlMap {
             new Style({
                 fill: new Fill({
                     color: colorWithOpacity
-                })
+                }),
+                text: textStyle
             })
         ];
         styles[GeometryType.MULTI_POLYGON] = styles[GeometryType.POLYGON];
@@ -315,6 +357,10 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         const idColumnIndex = _.findIndex(cols, isIdColumn);
+        const labelIndex = _.findIndex(cols, (column) => column.name === settings['olmapthematicmap.label_column']);
+        const showLabel = settings['olmapthematicmap.show-label'];
+        const labelFontSize = settings['olmapthematicmap.label_font_size'];
+        const labelColor = settings['olmapthematicmap.label_color'];
         this._vectorLayer.getSource().clear();
 
         if (geomColumnIndex === -1) {
@@ -325,7 +371,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         for (const row of rows) {
             const geoJSON = row[geomColumnIndex];
             const id = row[idColumnIndex];
-
+            const label = String(row[labelIndex]);
             if (geoJSON === null) {
                 continue;
             }
@@ -337,7 +383,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
                     const color = this.getColorForValue(row[this.selectedColumnIndex]);
                     const opacity = this.props.settings['olmapthematicmap.opacity'] || 100;
                     
-                    feature.setStyle(this.generateStyleForColor(color, opacity));
+                    feature.setStyle(this.generateStyleForColor(color, opacity, showLabel, label, labelFontSize, labelColor));
                     feature.set('id', id);
                 }
             } else {

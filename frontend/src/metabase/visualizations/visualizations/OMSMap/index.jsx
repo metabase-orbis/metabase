@@ -2,7 +2,7 @@
 import * as React from 'react';
 import _ from "underscore";
 
-import { Fill, Stroke, Circle, Style } from 'ol/style';
+import { Fill, Stroke, Circle, Style, Text } from 'ol/style';
 import Feature from 'ol/Feature';
 import PointGeom from 'ol/geom/Point';
 import { fromLonLat } from 'ol/proj';
@@ -65,7 +65,32 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             widget: "number",
             default: 12,
         },
-
+        'olmap.show-label': {
+            section: 'Подпись',
+            title: 'Показывать подпись',
+            widget: "toggle",
+            default: false,
+        },
+        ...fieldSetting("olmap.label_column", {
+            section: 'Подпись',
+            title: 'Колонка',
+            getDefault: ([{ data }]) => data.cols[0].name,
+        }),
+        'olmap.label_font_size': {
+            section: 'Подпись',
+            title: 'Размер шрифта',
+            widget: 'number',
+            default: 14,
+        },
+        'olmap.label_color': {
+            section: 'Подпись',
+            title: 'Цвет',
+            widget: 'color',
+            default: '#000000',
+            getProps: () => ({
+                fancy: true,
+            })
+        },
         "olmap.icon_border_color": {
             section: 'Обводка',
             title: 'Цвет обводки',
@@ -135,45 +160,63 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
     }
 
     regenerateStyles() {
-        this._vectorLayer.setStyle([
-            new Style({
-                image: new Circle({
-                    fill: new Fill({
-                        color: this.props.settings['olmap.icon_color']
+        const { settings } = this.props;
+        this._vectorLayer.getSource().getFeatures().forEach(f => {
+            const textStyle = settings['olmap.show-label']
+            ? new Text({
+                font: `${settings['olmap.label_font_size']}px sans-serif`,
+                text: f.get('label'),
+                fill:  new Fill({
+                    color: settings['olmap.label_color']
+                }),
+                stroke: new Stroke({
+                    color: '#ffffff',
+                    width: 0.5
+                }),
+            }) : null;
+            f.setStyle([
+                new Style({
+                    image: new Circle({
+                        fill: new Fill({
+                            color: settings['olmap.icon_color']
+                        }),
+                        stroke: new Stroke({
+                            color: settings['olmap.icon_border_color'],
+                            width: settings['olmap.icon_border_size']
+                        }),
+                        radius: settings['olmap.icon_size']
                     }),
-                    stroke: new Stroke({
-                        color: this.props.settings['olmap.icon_border_color'],
-                        width: this.props.settings['olmap.icon_border_size']
-                    }),
-                    radius: this.props.settings['olmap.icon_size']
+                    text: textStyle
                 })
-            })
-        ]);
+            ])
+        })
     }
 
     updateMarkers() {
-        
         const { settings, series } = this.props;
         this._vectorLayer.getSource().clear();
 
         const latitudeColumnName = settings['olmap.latitude_column'];
         const longitudeColumnName = settings['olmap.longitude_column'];
+        const labelColumn = settings['olmap.label_column'];
 
         for (const serie of series) {
             const latitudeColumnIndex = _.findIndex(serie.data.cols, (column) => column.name === latitudeColumnName);
             const longitudeColumnIndex = _.findIndex(serie.data.cols, (column) => column.name === longitudeColumnName);
-            const idIndex = _.findIndex(serie.data.cols, isIdColumn)
+            const idIndex = _.findIndex(serie.data.cols, isIdColumn);
+            const labelIndex = _.findIndex(serie.data.cols, (column) => column.name === labelColumn)
 
             for (const row of serie.data.rows) {
                 const lat = row[latitudeColumnIndex];
                 const lon = row[longitudeColumnIndex];
                 const id = row[idIndex];
+                const label = row[labelIndex];
 
                 const pointFeature = new Feature({
                     geometry: new PointGeom(fromLonLat([lon, lat], 'EPSG:3857'))
                 });
                 pointFeature.set('id', id);
-
+                pointFeature.set('label', String(label))
                 this._vectorLayer.getSource().addFeature(pointFeature);
             }
         }
