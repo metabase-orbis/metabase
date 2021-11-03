@@ -2,32 +2,22 @@
 import * as React from 'react';
 import _ from "underscore";
 
-import Map from 'ol/Map';
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
 import { Fill, Stroke, Circle, Style } from 'ol/style';
 import Feature from 'ol/Feature';
 import PointGeom from 'ol/geom/Point';
 import { fromLonLat } from 'ol/proj';
-import View from 'ol/View';
-import { transform } from 'ol/proj';
 
 import {
     isNumeric,
     isLatitude,
-    isLongitude,
-    isMetric,
-    hasLatitudeAndLongitudeColumns,
-    isState,
-    isCountry,
+    isLongitude
 } from "metabase/lib/schema_metadata";
 import { columnSettings } from "metabase/visualizations/lib/settings/column";
 import { isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
-import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
+import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
+import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
 import styles from './style.css';
 
 import type { VisualizationProps } from "metabase-types/types/Visualization";
@@ -36,14 +26,7 @@ import type { SettingDef } from 'metabase/visualizations/lib/settings';
 export interface IOMSMapProps extends VisualizationProps { }
 export interface IOMSMapState { }
 
-class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
-
-    _map: Map;
-    _pointVectorLayer = new VectorLayer({
-        source: new VectorSource()
-    });
-    _mapMountEl: HTMLDivElement;
-
+class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
     static uiName = "Openlayers Map";
     static identifier = "olmap";
     static iconName = "location";
@@ -54,7 +37,6 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
 
     constructor(props: IOMSMapProps) {
         super(props);
-        this.onMapClick = this.onMapClick.bind(this);
     }
 
     static settings: { [k: string]: SettingDef; } = {
@@ -107,48 +89,13 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
     };
 
     componentDidMount() {
-        const mapParams = this.props.settings['olmap.mapParams'].map(n => Number(n));
-        const [zoom, ...center] = mapParams;
-        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
-        this._map = new Map({
-            layers: [
-                new TileLayer({
-                    source: new OSM(),
-                }),
-                this._pointVectorLayer
-            ],
-            target: this._mapMountEl,
-            view: new View({
-                center: trCenter,
-                zoom: zoom || 2,
-            })
-        });
-        this._map.on('moveend', () => {
-            const zoom = Math.round(this._map.getView().getZoom());
-            const center_ = this._map.getView().getCenter();
-            const projection = this._map.getView().getProjection().getCode();
-            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
-            if (this.props.onChangeMapState) {
-                this.props.onChangeMapState({zoom, center});
-            }
-        })
-        this.setInteractions();
+        super.componentDidMount();
         this.updateMarkers();
         this.regenerateStyles();
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        const sameSize =
-            this.props.width === nextProps.width &&
-            this.props.height === nextProps.height;
-        const sameSeries = isSameSeries(this.props.series, nextProps.series);
-        return !sameSize || !sameSeries;
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        const sameSize =
-            this.props.width === prevProps.width &&
-            this.props.height === prevProps.height;
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        super.componentDidUpdate(prevProps, prevState, snapshot);
 
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
 
@@ -159,10 +106,6 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
             this.updateMarkers();
         }
 
-        if (!sameSize) {
-            this._map.updateSize();
-        }
-
         if (prevProps.settings !== this.props.settings) {
             this.regenerateStyles();
         }
@@ -171,46 +114,16 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
         }
     }
 
-    setInteractions() {
-        const {onHoverChange} = this.props;
-        this._map.on('pointermove', (e) => {
-            let feature = getOlFeatureOnPixel(this._map, e.pixel);
-            
-            if (feature) {
-                if (onHoverChange) {
-                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-                    onHoverChange(this.getObjectConfig(data, e));
-                }
-                this._mapMountEl.style.cursor = 'pointer';
-            } else {
-                if (onHoverChange) {
-                    onHoverChange(null);
-                }
-                this._mapMountEl.style.cursor = 'default';
-            }
-        });
-        
-        this._map.on('click', this.onMapClick)
+    getMapParams() {
+        return this.props.settings['olmap.mapParams'].map(n => Number(n));
     }
 
-    getObjectConfig(featureData, e) {
-        const {series, settings, onVisualizationClick} = this.props;
-        if (!featureData) return null;
-        let data = [];
-        let dimensions = [];
-        let value = featureData['orbis_id'] || featureData['id'];
-        const seriesIndex = 0;
-        const seriesData = series[seriesIndex].data || {};
-        const cols = seriesData.cols;
-        data = cols.map((c) => ({
-            key: c.display_name || c.name,
-            value: featureData[c.name],
-            col: c
-        }));
-        dimensions = cols.map((c) => ({
-            column: c,
-            value: featureData[c.name]
-        }));
+    getObjectValue(featureData) {
+        return featureData['orbis_id'] || featureData['id'];
+    }
+
+    getObjectColumn(seriesIndex) {
+        const { series, settings } = this.props;
         let column;
         let possibleKeys = ['orbis_id', 'id', settings['olmap.latitude_column'], settings['olmap.longitude_column']];
         let index = 0;
@@ -218,32 +131,11 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
             column = series[seriesIndex].data.cols.find(c => c.name === possibleKeys[index]);
             index++;
         }
-        
-        return {
-            index: -1,
-            element: null,
-            event: e.originalEvent,
-            data,
-            dimensions,
-            value,
-            column,
-            settings,
-            seriesIndex
-        }
-    }
-
-    onMapClick(e) {
-        const { onVisualizationClick } = this.props;
-        let feature = getOlFeatureOnPixel(this._map, e.pixel);
-        if (!feature) return;
-        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-        if (onVisualizationClick) {
-            onVisualizationClick(this.getObjectConfig(data, e));
-        }
+        return column;
     }
 
     regenerateStyles() {
-        this._pointVectorLayer.setStyle([
+        this._vectorLayer.setStyle([
             new Style({
                 image: new Circle({
                     fill: new Fill({
@@ -260,8 +152,9 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
     }
 
     updateMarkers() {
+        
         const { settings, series } = this.props;
-        this._pointVectorLayer.getSource().clear();
+        this._vectorLayer.getSource().clear();
 
         const latitudeColumnName = settings['olmap.latitude_column'];
         const longitudeColumnName = settings['olmap.longitude_column'];
@@ -281,28 +174,9 @@ class OMSMapComponent extends React.Component<IOMSMapProps, IOMSMapState> {
                 });
                 pointFeature.set('id', id);
 
-                this._pointVectorLayer.getSource().addFeature(pointFeature);
+                this._vectorLayer.getSource().addFeature(pointFeature);
             }
         }
-    }
-
-    updateMapState() {
-        const mapParams = this.props.settings['olmap.mapParams'];
-        const projection = this._map.getView().getProjection().getCode();
-        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
-        this._map.getView().setZoom(mapParams[0]);
-        this._map.getView().setCenter(center);
-    }
-
-    render() {
-        const { onHoverChange } = this.props;
-        return (
-            <div
-                className={styles.omsMap}
-                ref={el => this._mapMountEl = el}
-                onMouseLeave={() => onHoverChange && onHoverChange(null)}
-            ></div>
-        );
     }
 }
 

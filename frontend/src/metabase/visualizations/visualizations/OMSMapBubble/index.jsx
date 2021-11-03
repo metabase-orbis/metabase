@@ -2,12 +2,6 @@
 import * as React from 'react';
 import { t, jt } from "ttag";
 import _ from 'underscore';
-import OLMap from 'ol/Map';
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
-import View from 'ol/View';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
 import GeoJSONFormatter from 'ol/format/GeoJSON';
 import WKB from 'ol/format/WKB';
 import Projection from 'ol/proj/Projection';
@@ -19,17 +13,9 @@ import { Fill, Stroke, Circle, Style } from 'ol/style';
 import { transform } from 'ol/proj';
 import geostats from 'metabase/visualizations/lib/oms/geostats';
 
-import {
-    isNumeric,
-    isLatitude,
-    isLongitude,
-    isMetric,
-    hasLatitudeAndLongitudeColumns,
-    isState,
-    isCountry,
-} from "metabase/lib/schema_metadata";
+import { isNumeric } from "metabase/lib/schema_metadata";
 import { columnSettings } from "metabase/visualizations/lib/settings/column";
-import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
+import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { OMSNumberRange } from 'metabase/visualizations/components/settings/OMSNumberRange';
 import { memoize } from 'metabase-lib/lib/utils';
@@ -37,6 +23,7 @@ import { isNotGeomColumn, isGeomColumn, isIdColumn } from 'metabase/visualizatio
 import { getUniqueValues, getValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
+import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
 
 import styles from './style.css';
 
@@ -46,20 +33,7 @@ const Algorithm = Object.freeze({
     Jenks: 2
 });
 
-class OMSMapBubbleComponent extends React.Component {
-
-    /**
-     * @type {import('ol/Map')}
-     */
-    _map;
-    _vectorLayer = new VectorLayer({
-        source: new VectorSource()
-    });
-
-    /**
-     * @type {HTMLDivElement}
-     */
-    _mapMountEl;
+class OMSMapBubbleComponent extends OMSOlMap {
 
     /** 
      * @type {number}
@@ -87,11 +61,11 @@ class OMSMapBubbleComponent extends React.Component {
 
     constructor(props) {
         super(props);
-        this.onMapClick = this.onMapClick.bind(this);
     }
 
     static settings = {
         ...fieldSetting("omsmapbubble.column", {
+            section: 'Данные',
             title: `Колонка`,
             fieldFilter: isNumeric
         }),
@@ -107,6 +81,7 @@ class OMSMapBubbleComponent extends React.Component {
         },
 
         'omsmapbubble.opacity': {
+            section: 'Иконка',
             title: 'Непрозрачность',
             widget: "number",
             default: 80,
@@ -115,6 +90,7 @@ class OMSMapBubbleComponent extends React.Component {
         },
 
         'omsmapbubble.algorithm': {
+            section: 'Данные',
             title: 'Алгоритм распределения',
             widget: "select",
             default: Algorithm.EqInterval,
@@ -128,6 +104,7 @@ class OMSMapBubbleComponent extends React.Component {
         },
 
         'omsmapbubble.classes_num': {
+            section: 'Данные',
             title: 'Количество классов',
             widget: "number",
             default: 0,
@@ -138,6 +115,7 @@ class OMSMapBubbleComponent extends React.Component {
         },
 
         'omsmapbubble.size': {
+            section: 'Иконка',
             title: 'Размер',
             widget: OMSNumberRange,
             default: [10, 50],
@@ -145,6 +123,7 @@ class OMSMapBubbleComponent extends React.Component {
             min: 1
         },
         'omsmapbubble.mapParams': {
+            section: 'Карта',
             title: 'Параметры карты',
             widget: OMSInputGroup,
             names: ['Масштаб', 'Координаты центра'],
@@ -155,41 +134,14 @@ class OMSMapBubbleComponent extends React.Component {
     };
 
     componentDidMount() {
-        const mapParams = this.props.settings['omsmapbubble.mapParams'].map(n => Number(n));
-        const [zoom, ...center] = mapParams;
-        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
-        this._map = new OLMap({
-            layers: [
-                new TileLayer({
-                    source: new OSM(),
-                }),
-                this._vectorLayer
-            ],
-            target: this._mapMountEl,
-            view: new View({
-                center: trCenter,
-                zoom: zoom || 2,
-            })
-        });
-        this._map.on('moveend', () => {
-            const zoom = Math.round(this._map.getView().getZoom());
-            const center_ = this._map.getView().getCenter();
-            const projection = this._map.getView().getProjection().getCode();
-            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
-            if (this.props.onChangeMapState) {
-                this.props.onChangeMapState({zoom, center});
-            }
-        })
-        this.setInteractions();
+        super.componentDidMount();
         this.updateCategoryClasses();
         this.updateMarkers();
     }
 
     componentDidUpdate(prevProps, prevState) {
+        super.componentDidUpdate(prevProps, prevState);
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
-        const sameSize =
-            this.props.width === prevProps.width &&
-            this.props.height === prevProps.height;
 
         const mapParams = this.props.settings['omsmapbubble.mapParams'];
         const prevMapParams = prevProps.settings['omsmapbubble.mapParams'];
@@ -198,85 +150,23 @@ class OMSMapBubbleComponent extends React.Component {
             this.updateCategoryClasses();
             this.updateMarkers();
         }
-
-        if (!sameSize) {
-            this._map.updateSize();
-        }
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        const sameSize =
-            this.props.width === nextProps.width &&
-            this.props.height === nextProps.height;
-        const sameSeries = isSameSeries(this.props.series, nextProps.series);
-        return !sameSize || !sameSeries;
+    getMapParams() {
+        return this.props.settings['omsmapbubble.mapParams'].map(n => Number(n));
     }
 
-    setInteractions() {
-        const {onHoverChange} = this.props;
-        this._map.on('pointermove', (e) => {
-            let feature = getOlFeatureOnPixel(this._map, e.pixel);
-            if (feature) {
-                if (onHoverChange) {
-                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-                    onHoverChange(this.getObjectConfig(data, e));
-                }
-                this._mapMountEl.style.cursor = 'pointer';
-            } else {
-                if (onHoverChange) {
-                    onHoverChange(null);
-                }
-                this._mapMountEl.style.cursor = 'default';
-            }
-        });
-        
-        this._map.on('click', this.onMapClick)
+    getObjectValue(featureData) {
+        const { settings } = this.props;
+        return featureData[settings['omsmapbubble.column']];
     }
 
-    getObjectConfig(featureData, e) {
-        const {series, settings, onVisualizationClick} = this.props;
-        if (!featureData) return null;
-        let data = [];
-        let dimensions = [];
-        let value = featureData[settings['omsmapbubble.column']];
-        const seriesIndex = 0;
-        const seriesData = series[seriesIndex].data || {};
-        const cols = seriesData.cols;
-        data = cols.map((c) => ({
-            key: c.display_name || c.name,
-            value: featureData[c.name],
-            col: c
-        }));
-        dimensions = cols.map((c) => ({
-            column: c,
-            value: featureData[c.name]
-        }));
-        const column = series[seriesIndex].data.cols.find(c => c.name === settings['omsmapbubble.column'])
-        
-        return {
-            index: -1,
-                element: null,
-                event: e.originalEvent,
-                data,
-                dimensions,
-                value,
-                column,
-                settings,
-                seriesIndex
-        }
-    }
-
-    onMapClick(e) {
-        const { onVisualizationClick } = this.props;
-        let feature = getOlFeatureOnPixel(this._map, e.pixel);
-        if (!feature) return;
-        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-        if (onVisualizationClick) {
-            onVisualizationClick(this.getObjectConfig(data, e));
-        }
+    getObjectColumn(seriesIndex) {
+        const { series, settings } = this.props;
+        return series[seriesIndex].data.cols.find(c => c.name === settings['omsmapbubble.column']);
     }
 
     updateCategoryClasses() {
@@ -378,14 +268,6 @@ class OMSMapBubbleComponent extends React.Component {
         }
     }
 
-    updateMapState() {
-        const mapParams = this.props.settings['omsmapbubble.mapParams'];
-        const projection = this._map.getView().getProjection().getCode();
-        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
-        this._map.getView().setZoom(mapParams[0]);
-        this._map.getView().setCenter(center);
-    }
-
     getIconSizeForValue(value) {
         const algorithm = this.props.settings['omsmapbubble.algorithm'];
         const classesNum = this.props.settings['omsmapbubble.classes_num'];
@@ -425,17 +307,6 @@ class OMSMapBubbleComponent extends React.Component {
 
         // Вернуть нужно диаметр
         return radius / 2;
-    }
-
-    render() {
-        const {onHoverChange} = this.props;
-        return (
-            <div
-                className={styles.omsMap}
-                ref={el => this._mapMountEl = el}
-                onMouseLeave={() => onHoverChange && onHoverChange(null)}
-            ></div>
-        );
     }
 }
 

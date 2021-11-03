@@ -1,11 +1,6 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
 import _ from 'underscore';
-import OLMap from 'ol/Map';
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
 import GeoJSONFormatter from 'ol/format/GeoJSON';
 import WKB from 'ol/format/WKB';
 import Projection from 'ol/proj/Projection';
@@ -32,11 +27,12 @@ import { getUniqueValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
 import { Row } from 'metabase-types/types/Dataset';
 import { memoize } from 'metabase-lib/lib/utils';
+import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
 
 export interface IOMSMapProps extends VisualizationProps { }
 export interface IOMSMapState { }
 
-class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapState> {
+class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
     static settings: { [k: string]: SettingDef; } = {
         'olmapcategories.settings': {
@@ -81,12 +77,6 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
     static identifier = "olmapcategories";
     static iconName = "location";
 
-    _map: Map;
-    _vectorLayer = new VectorLayer({
-        source: new VectorSource()
-    });
-    _mapMountEl: HTMLDivElement;
-
     /* Индекс выбранной колонки. Используется для получения значения колонки из строки таблицы */
     selectedColumnIndex: number;
     /* Уникальные значения */
@@ -105,45 +95,17 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
 
     constructor(props: IOMSMapProps) {
         super(props);
-        this.onMapClick = this.onMapClick.bind(this);
     }
 
     componentDidMount() {
-        const mapParams = this.props.settings['olmapcategories.mapParams'].map(n => Number(n));
-        const [zoom, ...center] = mapParams;
-        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
-        this._map = new OLMap({
-            layers: [
-                new TileLayer({
-                    source: new OSM(),
-                }),
-                this._vectorLayer
-            ],
-            target: this._mapMountEl,
-            view: new View({
-                center: trCenter,
-                zoom: zoom || 2,
-            })
-        });
-        this._map.on('moveend', () => {
-            const zoom = Math.round(this._map.getView().getZoom());
-            const center_ = this._map.getView().getCenter();
-            const projection = this._map.getView().getProjection().getCode();
-            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
-            if (this.props.onChangeMapState) {
-                this.props.onChangeMapState({zoom, center});
-            }
-        })
-        this.setInteractions();
+        super.componentDidMount();
         this.updateCategoryClasses();
         this.updateMarkers();
     }
 
     componentDidUpdate(prevProps, prevState) {
+        super.componentDidUpdate(prevProps, prevState);
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
-        const sameSize =
-            this.props.width === prevProps.width &&
-            this.props.height === prevProps.height;
 
         if (!sameSeries) {
             this.updateCategoryClasses();
@@ -153,88 +115,27 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
         const mapParams = this.props.settings['olmapcategories.mapParams'];
         const prevMapParams = prevProps.settings['olmapcategories.mapParams'];
 
-        if (!sameSize) {
-            this._map.updateSize();
-        }
-
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        const sameSize =
-            this.props.width === nextProps.width &&
-            this.props.height === nextProps.height;
-        const sameSeries = isSameSeries(this.props.series, nextProps.series);
-        return !sameSize || !sameSeries;
+    getMapParams() {
+        return this.props.settings['olmapcategories.mapParams'].map(n => Number(n));
     }
 
-    setInteractions() {
-        const {onHoverChange} = this.props;
-        this._map.on('pointermove', (e) => {
-            let feature = getOlFeatureOnPixel(this._map, e.pixel);
-            if (feature) {
-                if (onHoverChange) {
-                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-                    onHoverChange(this.getObjectConfig(data, e));
-                }
-                this._mapMountEl.style.cursor = 'pointer';
-            } else {
-                if (onHoverChange) {
-                    onHoverChange(null);
-                }
-                this._mapMountEl.style.cursor = 'default';
-            }
-        });
-        
-        this._map.on('click', this.onMapClick)
+    getObjectValue(featureData) {
+        const { settings } = this.props;
+        return settings['olmapcategories.settings'] 
+                ? featureData[settings['olmapcategories.settings'].column]
+                : null;
     }
 
-    getObjectConfig(featureData, e) {
-        const {series, settings} = this.props;
-        if (!featureData) return null;
-        let data = [];
-        let dimensions = [];
-        let value = settings['olmapcategories.settings'] 
-            ? featureData[settings['olmapcategories.settings'].column]
-            : null;
-        const seriesIndex = 0;
-        const seriesData = series[seriesIndex].data || {};
-        const cols = seriesData.cols;
-        data = cols.map((c) => ({
-            key: c.display_name || c.name,
-            value: featureData[c.name],
-            col: c
-        }));
-        dimensions = cols.map((c) => ({
-            column: c,
-            value: featureData[c.name]
-        }));
-        const column = settings['olmapcategories.settings'] 
+    getObjectColumn(seriesIndex) {
+        const { series, settings } = this.props;
+        return settings['olmapcategories.settings'] 
             ? series[seriesIndex].data.cols.find(c => c.name === settings['olmapcategories.settings'].column) 
             : null;
-        return {
-            index: -1,
-                element: null,
-                event: e.originalEvent,
-                data,
-                dimensions,
-                value,
-                column,
-                settings,
-                seriesIndex
-        }
-    }
-
-    onMapClick(e) {
-        const { onVisualizationClick } = this.props;
-        let feature = getOlFeatureOnPixel(this._map, e.pixel);
-        if (!feature) return;
-        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-        if (onVisualizationClick) {
-            onVisualizationClick(this.getObjectConfig(data, e));
-        }
     }
 
     updateCategoryClasses() {
@@ -296,21 +197,9 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
         }
     }
 
-    updateMapState() {
-        const mapParams = this.props.settings['olmapcategories.mapParams'];
-        const projection = this._map.getView().getProjection().getCode();
-        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
-        this._map.getView().setZoom(mapParams[0]);
-        this._map.getView().setCenter(center);
-    }
-
     geojsonToFeature(geojson) {
         const formatGeoJSON = new GeoJSONFormatter();
         const wkb = new WKB();
-
-        // const geom = formatGeoJSON.readFeatures(geojson, {
-        //     dataProjection: new Projection({ code: "EPSG:3857" })
-        // });
 
         const geom = wkb.readFeatures(geojson, {
             dataProjection: new Projection({ code: "EPSG:3857" })
@@ -384,17 +273,6 @@ class OMSMapCategoriesComponent extends React.Component<IOMSMapProps, IOMSMapSta
     isRowExcluded(row: Row): boolean {
         const value = row[this.selectedColumnIndex];
         return this.uncheckedValues.includes(value);
-    }
-
-    render() {
-        const { onHoverChange } = this.props;
-        return (
-            <div
-                className={styles.omsMap}
-                ref={el => this._mapMountEl = el}
-                onMouseLeave={() => onHoverChange && onHoverChange(null)}
-            ></div>
-        );
     }
 }
 

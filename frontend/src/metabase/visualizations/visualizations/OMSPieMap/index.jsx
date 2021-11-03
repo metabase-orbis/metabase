@@ -31,6 +31,7 @@ import { OMSMapPieFields } from 'metabase/visualizations/components/settings/OMS
 import { generateColor } from 'metabase/visualizations/lib/oms/colors';
 import { isGeomColumn, isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
+import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
 import Icon from "metabase/components/Icon";
 
 /**
@@ -44,19 +45,7 @@ import Icon from "metabase/components/Icon";
 /**
  * @extends {React.Component<import('metabase-types/types/Visualization').VisualizationProps & IOMSMapProps, IOMSMapState>}
  */
-class OMSPieMapComponent extends React.Component {
-    /**
-     * @type {import('ol/Map')}
-     */
-    _map;
-    _vectorLayer = new VectorLayer({
-        source: new VectorSource()
-    });
-
-    /**
-     * @type {HTMLDivElement}
-     */
-    _mapMountEl;
+class OMSPieMapComponent extends OMSOlMap {
 
     static uiName = "OMS Круговые диаграммы";
     static identifier = "omsmappie";
@@ -142,44 +131,15 @@ class OMSPieMapComponent extends React.Component {
 
     constructor(props) {
         super(props);
-        this.onMapClick = this.onMapClick.bind(this);
     }
 
     componentDidMount() {
-        const mapParams = this.props.settings['omsmappie.mapParams'].map(n => Number(n));
-        const [zoom, ...center] = mapParams;
-        const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
-        this._map = new OLMap({
-            layers: [
-                new TileLayer({
-                    source: new OSM(),
-                }),
-                this._vectorLayer
-            ],
-            target: this._mapMountEl,
-            view: new View({
-                center: trCenter,
-                zoom: zoom || 2,
-            }),
-        });
-        this._map.on('moveend', () => {
-            const zoom = Math.round(this._map.getView().getZoom());
-            const center_ = this._map.getView().getCenter();
-            const projection = this._map.getView().getProjection().getCode();
-            const center = transform(center_, projection, 'EPSG:4326').map(n => Number(n.toFixed(4)));
-            if (this.props.onChangeMapState) {
-                this.props.onChangeMapState({zoom, center});
-            }
-        })
-        this.setInteractions();
+        super.componentDidMount();
         this.updateMarkers();
     }
 
     componentDidUpdate(prevProps, prevState) {
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
-        const sameSize =
-            this.props.width === prevProps.width &&
-            this.props.height === prevProps.height;
 
         if (!sameSeries) {
             this.updateMarkers();
@@ -188,84 +148,13 @@ class OMSPieMapComponent extends React.Component {
         const mapParams = this.props.settings['omsmappie.mapParams'];
         const prevMapParams = prevProps.settings['omsmappie.mapParams'];
 
-        if (!sameSize) {
-            this._map.updateSize();
-        }
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        const sameSize =
-            this.props.width === nextProps.width &&
-            this.props.height === nextProps.height;
-        const sameSeries = isSameSeries(this.props.series, nextProps.series);
-        return !sameSize || !sameSeries;
-    }
-
-    setInteractions() {
-        const {onHoverChange} = this.props;
-        this._map.on('pointermove', (e) => {
-            let feature = getOlFeatureOnPixel(this._map, e.pixel);
-            if (feature) {
-                if (onHoverChange) {
-                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-                    onHoverChange(this.getObjectConfig(data, e));
-                }
-                this._mapMountEl.style.cursor = 'pointer';
-            } else {
-                if (onHoverChange) {
-                    onHoverChange(null);
-                }
-                this._mapMountEl.style.cursor = 'default';
-            }
-        });
-
-        this._map.on('click', this.onMapClick)
-    }
-
-    getObjectConfig(featureData, e) {
-        const {series, settings, onVisualizationClick} = this.props;
-        if (!featureData) return null;
-        let data = [];
-        let dimensions = [];
-        let value = featureData[settings['omsmapbubble.column']];
-        const seriesIndex = 0;
-        const seriesData = series[seriesIndex].data || {};
-        const cols = seriesData.cols;
-        data = cols.map((c) => ({
-            key: c.display_name || c.name,
-            value: featureData[c.name],
-            col: c
-        })).filter((d) => d.col.name !== 'orbis_id' && d.col.name !== 'geom');
-        dimensions = cols.map((c) => ({
-            column: c,
-            value: featureData[c.name]
-        }));
-        const column = series[seriesIndex].data.cols.find(c => c.name === settings['omsmapbubble.column'])
-
-        return {
-            index: -1,
-                element: null,
-                event: e.originalEvent,
-                data,
-                dimensions,
-                value,
-                column,
-                settings,
-                seriesIndex
-        }
-    }
-
-    onMapClick(e) {
-        const { onVisualizationClick } = this.props;
-        let feature = getOlFeatureOnPixel(this._map, e.pixel);
-        if (!feature) return;
-        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-        if (onVisualizationClick) {
-            onVisualizationClick(this.getObjectConfig(data, e));
-        }
+    getMapParams() {
+        return this.props.settings['omsmappie.mapParams'].map(n => Number(n));
     }
 
     geojsonToFeature(wkbBuff) {
@@ -329,7 +218,6 @@ class OMSPieMapComponent extends React.Component {
         g.setAttribute('stroke', '#ffffff');
         g.setAttribute('stroke-width', 1);
         g.setAttribute('stroke-linejoin', 'round');
-      
         const textG = document.createElement('g');
         textG.setAttribute('transform', `translate(${outerR + increase / 2}, ${outerR + increase / 2})`);
         textG.setAttribute('font-family', 'sans-serif');
@@ -340,6 +228,7 @@ class OMSPieMapComponent extends React.Component {
             path.setAttribute('d', arc(v));
             path.setAttribute('fill', values[i].color);
             g.appendChild(path);
+            
             const text = document.createElement('text');
             text.setAttribute('transform', `translate(${arc.centroid(v)})`);
             const tspan = document.createElement('tspan');
@@ -392,25 +281,6 @@ class OMSPieMapComponent extends React.Component {
 
             this._vectorLayer.getSource().addFeatures(features);
         }
-    }
-
-    updateMapState() {
-        const mapParams = this.props.settings['omsmappie.mapParams'];
-        const projection = this._map.getView().getProjection().getCode();
-        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
-        this._map.getView().setZoom(mapParams[0]);
-        this._map.getView().setCenter(center);
-    }
-
-    render() {
-        const {onHoverChange} = this.props;
-        return (
-            <div
-                className={css.omsMap}
-                ref={el => this._mapMountEl = el}
-                onMouseLeave={() => onHoverChange && onHoverChange(null)}
-            ></div>
-        );
     }
 }
 
