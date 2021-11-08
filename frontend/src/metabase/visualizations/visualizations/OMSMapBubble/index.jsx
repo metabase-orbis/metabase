@@ -122,6 +122,17 @@ class OMSMapBubbleComponent extends OMSOlMap {
             max: 100,
             min: 1
         },
+        "omsmapbubble.icon_border_color": {
+            section: 'Обводка',
+            title: 'Цвет обводки',
+            widget: "color"
+        },
+        "omsmapbubble.icon_border_size": {
+            section: 'Обводка',
+            title: 'Размер обводки',
+            widget: "number",
+            default: 0,
+        },
         'omsmapbubble.show-label': {
             section: 'Подпись',
             title: 'Показывать подпись',
@@ -235,10 +246,9 @@ class OMSMapBubbleComponent extends OMSOlMap {
      * @param {number} radius
      */
     @memoize
-    generateStyleForColor(color, opacity, radius, showLabel, label, labelSize, labelColor) {
+    generateStyleForColor(color, opacity, radius, label, showLabel, labelSize, labelColor, borderColor, borderSize) {
         const [r, g, b, a] = colorAsArray(color);
         const colorWithOpacity = [r, g, b, opacity / 100];
-
         const textStyle = showLabel 
         ? new Text({
             font: `${labelSize}px sans-serif`,
@@ -257,8 +267,8 @@ class OMSMapBubbleComponent extends OMSOlMap {
                     color: colorWithOpacity
                 }),
                 stroke: new Stroke({
-                    color: '#ffffff',
-                    width: 1
+                    color: borderColor,
+                    width: borderSize
                 }),
                 radius: radius
             }),
@@ -273,9 +283,13 @@ class OMSMapBubbleComponent extends OMSOlMap {
         const idColumnIndex = _.findIndex(cols, isIdColumn);
         const labelIndex = _.findIndex(cols, (column) => column.name === settings['omsmapbubble.label_column']);
         this._vectorLayer.getSource().clear();
-        const showLabel = settings['omsmapbubble.show-label'];
-        const labelFontSize = settings['omsmapbubble.label_font_size'];
-        const labelColor = settings['omsmapbubble.label_color'];
+        const params = [
+            settings['omsmapbubble.show-label'],
+            settings['omsmapbubble.label_font_size'],
+            settings['omsmapbubble.label_color'],
+            settings['omsmapbubble.icon_border_color'],
+            settings['omsmapbubble.icon_border_size']
+        ]
 
         if (geomColumnIndex === -1) {
             console.error('Ошибка получения колонки геометрии');
@@ -302,7 +316,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
                     
                     const iconRadius = this.getIconSizeForValue(rowValue);
 
-                    feature.setStyle(this.generateStyleForColor(color, opacity, iconRadius, showLabel, label, labelFontSize, labelColor));
+                    feature.setStyle(this.generateStyleForColor(color, opacity, iconRadius, label, ...params));
                     feature.set('id', id);
                 }
             } else {
