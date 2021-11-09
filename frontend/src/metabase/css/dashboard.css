@@ -315,6 +315,16 @@
   .dc-chart .y-axis-label {
     fill: var(--color-text-dark);
   }
+  
+  .DashboardGrid {
+    height: auto!important;
+  }
+  .DashCard {
+    position: relative !important;
+    page-break-inside: avoid;
+    transform: none!important;
+    width: auto!important
+  }
 }
 
 @media print and (orientation: portrait) {
