@@ -122,7 +122,12 @@ class OMSPieMapComponent extends OMSOlMap {
             types: ['number', 'number', 'number'],
             setValueTitle: 'Текущая позиция карты'
         },
-    
+        'omsmappie.map_url': {
+            section: 'Карта',
+            title: 'Ссылка на карту',
+            widget: 'input',
+            default: ''
+        }
     };
 
     static isSensible({ cols, rows }) {
@@ -139,6 +144,7 @@ class OMSPieMapComponent extends OMSOlMap {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        super.componentDidUpdate(prevProps, prevState);
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
 
         if (!sameSeries) {
@@ -151,10 +157,20 @@ class OMSPieMapComponent extends OMSOlMap {
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
+
+        const mapUrl = this.props.settings['omsmappie.map_url'];
+        const prevMapUrl = prevProps.settings['omsmappie.map_url'];
+        if (mapUrl !== prevMapUrl) {
+            this.setBaseMaps();
+        }
     }
 
     getMapParams() {
         return this.props.settings['omsmappie.mapParams'].map(n => Number(n));
+    }
+
+    getMapUrl() {
+        return this.props.settings['omsmappie.map_url'];
     }
 
     geojsonToFeature(wkbBuff) {

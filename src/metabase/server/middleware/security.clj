@@ -62,7 +62,10 @@
                                    "https://apis.google.com"
                                    "https://www.google-analytics.com" ; Safari requires the protocol
                                    "https://*.googleapis.com"
+                                   "https://www.google.com"
                                    "*.gstatic.com"
+                                   "http://api-maps.yandex.ru"
+                                   "https://yastatic.net"
                                    ;; for webpack hot reloading
                                    (when config/is-dev?
                                      "localhost:8080")
@@ -76,7 +79,8 @@
                                  ;; TODO - double check that we actually need this for Google Auth
                                  "https://accounts.google.com"]
                   :style-src    ["'self'"
-                                 "'unsafe-inline'"]
+                                 "'unsafe-inline'"
+                                 "https://fonts.googleapis.com"]
                   :font-src     ["'self'"
                                  (when config/is-dev?
                                    "localhost:8080")]
@@ -85,6 +89,9 @@
                   :connect-src  ["'self'"
                                  ;; MailChimp. So people can sign up for the Metabase mailing list in the sign up process
                                  "metabase.us10.list-manage.com"
+                                 "https://map.geoportal40.ru"
+                                 "https://admin.geoportal40.ru"
+                                 "https://maps.googleapis.com"
                                  (when config/is-dev?
                                    "localhost:8080 ws://localhost:8080")]
                   :manifest-src ["'self'"]}]

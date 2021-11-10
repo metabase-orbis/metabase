@@ -110,6 +110,12 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             default: [2, 0, 0],
             types: ['number', 'number', 'number'],
             setValueTitle: 'Текущая позиция карты'
+        },
+        'olmap.map_url': {
+            section: 'Карта',
+            title: 'Ссылка на карту',
+            widget: 'input',
+            default: ''
         }
     };
 
@@ -124,9 +130,6 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
 
-        const mapParams = this.props.settings['olmap.mapParams'];
-        const prevMapParams = prevProps.settings['olmap.mapParams'];
-
         if (!sameSeries) {
             this.updateMarkers();
         }
@@ -134,8 +137,17 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         if (prevProps.settings !== this.props.settings) {
             this.regenerateStyles();
         }
+
+        const mapParams = this.props.settings['olmap.mapParams'];
+        const prevMapParams = prevProps.settings['olmap.mapParams'];
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
+        }
+
+        const mapUrl = this.props.settings['olmap.map_url'];
+        const prevMapUrl = prevProps.settings['olmap.map_url'];
+        if (mapUrl !== prevMapUrl) {
+            this.setBaseMaps();
         }
     }
 
@@ -157,6 +169,10 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             index++;
         }
         return column;
+    }
+
+    getMapUrl() {
+        return this.props.settings['olmap.map_url']
     }
 
     regenerateStyles() {

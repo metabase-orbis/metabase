@@ -167,6 +167,12 @@ class OMSMapBubbleComponent extends OMSOlMap {
             default: [2, 0, 0],
             types: ['number', 'number', 'number'],
             setValueTitle: 'Текущая позиция карты'
+        },
+        'omsmapbubble.map_url': {
+            section: 'Карта',
+            title: 'Ссылка на карту',
+            widget: 'input',
+            default: ''
         }
     };
 
@@ -190,6 +196,11 @@ class OMSMapBubbleComponent extends OMSOlMap {
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
+        const mapUrl = this.props.settings['omsmapbubble.map_url'];
+        const prevMapUrl = prevProps.settings['omsmapbubble.map_url'];
+        if (mapUrl !== prevMapUrl) {
+            this.setBaseMaps();
+        }
     }
 
     getMapParams() {
@@ -204,6 +215,10 @@ class OMSMapBubbleComponent extends OMSOlMap {
     getObjectColumn(seriesIndex) {
         const { series, settings } = this.props;
         return series[seriesIndex].data.cols.find(c => c.name === settings['omsmapbubble.column']);
+    }
+
+    getMapUrl() {
+        return this.props.settings['omsmapbubble.map_url']
     }
 
     updateCategoryClasses() {

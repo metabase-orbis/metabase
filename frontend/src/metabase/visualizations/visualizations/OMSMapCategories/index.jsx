@@ -97,6 +97,12 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             types: ['number', 'number', 'number'],
             setValueTitle: 'Текущая позиция карты'
         },
+        'olmapcategories.map_url': {
+            section: 'Карта',
+            title: 'Ссылка на карту',
+            widget: 'input',
+            default: ''
+        }
     };
 
     static isSensible({ cols, rows }) {
@@ -148,6 +154,11 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
+        const mapUrl = this.props.settings['olmapcategories.map_url'];
+        const prevMapUrl = prevProps.settings['olmapcategories.map_url'];
+        if (mapUrl !== prevMapUrl) {
+            this.setBaseMaps();
+        }
     }
 
     getMapParams() {
@@ -166,6 +177,10 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         return settings['olmapcategories.settings'] 
             ? series[seriesIndex].data.cols.find(c => c.name === settings['olmapcategories.settings'].column) 
             : null;
+    }
+
+    getMapUrl() {
+        return this.props.settings['olmapcategories.map_url'];
     }
 
     updateCategoryClasses() {

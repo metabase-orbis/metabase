@@ -441,7 +441,9 @@ export function setEmbedDashboardEndpoints() {
     setParamsEndpoints("/api/embed");
   }
 }
-
+export function getConfigFromOMSMap(mapUrl) {
+  return GET(`${mapUrl}config.json`)()
+}
 function GET_with(url: string, params: Data) {
   return (data: Data, options?: Options) =>
     GET(url)({ ...params, ...data }, options);
