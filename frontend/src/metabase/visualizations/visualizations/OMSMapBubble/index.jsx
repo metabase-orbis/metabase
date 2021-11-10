@@ -125,7 +125,8 @@ class OMSMapBubbleComponent extends OMSOlMap {
         "omsmapbubble.icon_border_color": {
             section: 'Обводка',
             title: 'Цвет обводки',
-            widget: "color"
+            widget: "color",
+            default: '#509EE3',
         },
         "omsmapbubble.icon_border_size": {
             section: 'Обводка',
@@ -276,15 +277,19 @@ class OMSMapBubbleComponent extends OMSOlMap {
                 width: 0.5
             }),
         }) : null;
+
+        const strokeStyle = (borderSize > 0) 
+        ? new Stroke({
+            color: borderColor,
+            width: borderSize
+        }) : null;
+
         return new Style({
             image: new Circle({
                 fill: new Fill({
                     color: colorWithOpacity
                 }),
-                stroke: new Stroke({
-                    color: borderColor,
-                    width: borderSize
-                }),
+                stroke: strokeStyle,
                 radius: radius
             }),
             text: textStyle
