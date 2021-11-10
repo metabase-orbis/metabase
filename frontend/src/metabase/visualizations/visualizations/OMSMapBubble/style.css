@@ -2,3 +2,13 @@
   width: 100%;
   height: 100%;
 }
+
+:local .omsMapBubblesLegend {
+  display: flex;
+  align-items: center;
+}
+
+:local .omsMapBubblesLegendItem {
+  border-radius: 50%;
+  margin: 0 5px;
+}

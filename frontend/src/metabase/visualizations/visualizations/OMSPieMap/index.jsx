@@ -81,6 +81,12 @@ class OMSPieMapComponent extends OMSOlMap {
                 ]
             }
         },
+        'omsmappie.show_legend': {
+            section: 'Колонки',
+            title: 'Легенда',
+            widget: "toggle",
+            default: false,
+        },
 
         'omsmappie.opacity': {
             section: 'Иконки',
@@ -141,6 +147,7 @@ class OMSPieMapComponent extends OMSOlMap {
     componentDidMount() {
         super.componentDidMount();
         this.updateMarkers();
+        this.updateLegend();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -149,6 +156,7 @@ class OMSPieMapComponent extends OMSOlMap {
 
         if (!sameSeries) {
             this.updateMarkers();
+            this.updateLegend();
         }
 
         const mapParams = this.props.settings['omsmappie.mapParams'];
@@ -297,6 +305,36 @@ class OMSPieMapComponent extends OMSOlMap {
 
             this._vectorLayer.getSource().addFeatures(features);
         }
+    }
+
+    updateLegend() {
+        const { series, settings } = this.props;
+        if (!settings['omsmappie.show_legend']) {
+            this.setState({ legend: null });
+            return;
+        }
+        const lRows = settings['omsmappie.fields'].map((r) => {
+            const col = series[0].data.cols.find(c => c.name === r.name);
+            return {
+                name: col ? col.display_name : r.name,
+                color: r.color
+            }
+        })
+        const config = {
+            type: 'pie',
+            lRows
+        }
+        this.setState({ legend: config })
+    }
+
+    renderLegend() {
+        const { legend } = this.state;
+        return <div className={css.omsMapPieLegend}>
+            {legend.lRows.map((r) => (<div className={css.omsMapPieLegendItem} key={r.name}>
+                <div className={css.omsMapPieLegendColor} style={{ backgroundColor: r.color }} />
+                <div>{r.name}</div>
+            </div>))}
+        </div>
     }
 }
 

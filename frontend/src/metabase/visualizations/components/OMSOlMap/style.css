@@ -25,3 +25,35 @@
   right: 10px;
   z-index: 2;
 }
+
+:local .omsMapLegendWrapper {
+  position: absolute;
+  right: 10px;
+  bottom: 35px;
+  top: 60px;
+  z-index: 1;
+  max-width: 300px;
+  display: flex;
+  align-items: flex-end;
+}
+
+:local .omsMapLegend {
+  width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:local .omsMapLegendWrapperMin {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px;
+}
+
+:local .omsMapLegendContentWrapper {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-grow: 1;
+}

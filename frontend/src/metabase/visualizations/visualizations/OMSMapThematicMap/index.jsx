@@ -91,6 +91,12 @@ class OMSMapThematicMapComponent extends OMSOlMap {
             }),
             min: 0
         },
+        'olmapthematicmap.show_legend': {
+            section: 'Данные',
+            title: 'Легенда',
+            widget: "toggle",
+            default: false,
+        },
 
         'olmapthematicmap.colors_number': {
             section: 'Отображение',
@@ -188,6 +194,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         super.componentDidMount();
         this.updateCategoryClasses();
         this.updateMarkers();
+        this.updateLegend();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -197,6 +204,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         if (!sameSeries) {
             this.updateCategoryClasses();
             this.updateMarkers();
+            this.updateLegend();
         }
 
         const mapParams = this.props.settings['olmapthematicmap.mapParams'];
@@ -248,6 +256,29 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         this.classJenks = this.geoStats.getClassJenks(classesNum);
 
         this.classColors = chroma.scale(this.selectedColorTheme).colors(classesNum);
+    }
+
+    updateLegend() {
+        const { settings } = this.props;
+        if (!settings['olmapthematicmap.show_legend']) {
+            this.setState({ legend: null });
+            return;
+        }
+        const algorithms = {
+            [Algorithm.EqInterval]: this.classEqInterval,
+            [Algorithm.Quantile]: this.classQuantile,
+            [Algorithm.Jenks]: this.classJenks
+        }
+        const algorithmType = settings['olmapthematicmap.algorithm'];
+        const algorithmValues = algorithms[algorithmType].map(n => Number(n.toFixed(2)));
+        if (!algorithmValues) return;
+        const config = {
+            type: 'thematic',
+            colors: this.classColors,
+            min: algorithmValues[0],
+            max: algorithmValues[algorithmValues.length - 1]
+        };
+        this.setState({ legend: config });
     }
 
     geojsonToFeature(geojson) {
@@ -411,6 +442,19 @@ class OMSMapThematicMapComponent extends OMSOlMap {
 
             this._vectorLayer.getSource().addFeatures(features);
         }
+    }
+
+    renderLegend() {
+        const { legend } = this.state;
+        return <div className={css.omsMapThematicLegend}>
+            <div className={css.omsMapThematicLegendColors}>
+                {legend.colors.map(c => <div style={{backgroundColor: c}} key={c} />)}
+            </div>
+            <div className={css.omsMapThematicLegendValues}>
+                <span>{legend.min}</span>
+                <span>{legend.max}</span>
+            </div>
+        </div>
     }
 }
 

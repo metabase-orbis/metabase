@@ -53,6 +53,12 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
                 };
             },
         },
+        'olmapcategories.show_legend': {
+            section: 'Данные',
+            title: 'Легенда',
+            widget: "toggle",
+            default: false,
+        },
 
         'olmapcategories.opacity': {
             section: 'Данные',
@@ -137,6 +143,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         super.componentDidMount();
         this.updateCategoryClasses();
         this.updateMarkers();
+        this.updateLegend();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -146,6 +153,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         if (!sameSeries) {
             this.updateCategoryClasses();
             this.updateMarkers();
+            this.updateLegend();
         }
 
         const mapParams = this.props.settings['olmapcategories.mapParams'];
@@ -181,6 +189,28 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
     getMapUrl() {
         return this.props.settings['olmapcategories.map_url'];
+    }
+
+    updateLegend() {
+        const { series, settings } = this.props;
+        if (!settings['olmapcategories.show_legend'] || !settings['olmapcategories.settings']) {
+            this.setState({ legend: null });
+            return;
+        }
+        const rainbowSettings = settings['olmapcategories.settings'];
+        const uniqueValues = getUniqueValues(series[0].data.rows, getColumnIndexByName(series[0].data.cols, rainbowSettings.column));
+        const lRows = uniqueValues.map((v, i) => {
+            let color = this.savedColors[v.value] || this.rainbow[i] || '#000000';
+            return {
+                value: v.value,
+                color: color
+            }
+        });
+        const config = {
+            type: 'category',
+            lRows
+        }
+        this.setState({ legend: config })
     }
 
     updateCategoryClasses() {
@@ -343,6 +373,16 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
     isRowExcluded(row: Row): boolean {
         const value = row[this.selectedColumnIndex];
         return this.uncheckedValues.includes(value);
+    }
+
+    renderLegend() {
+        const {legend} = this.state;
+        return <div className={styles.omsMapCategoryLegend}>
+            {legend.lRows.map((r) => (<div className={styles.omsMapCategoryLegendItem} key={r.value}>
+                <div className={styles.omsMapCategoryLegendColor} style={{ backgroundColor: r.color }} />
+                <div>{r.value}</div>
+            </div>))}
+        </div>
     }
 }
 

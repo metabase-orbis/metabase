@@ -7,9 +7,11 @@ import View from 'ol/View';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { transform, toLonLat } from 'ol/proj';
+import cx from 'classnames';
 import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
 import { getConfigFromOMSMap } from 'metabase/services';
 import Select, { Option } from "metabase/components/Select";
+import Icon from "metabase/components/Icon";
 
 import css from './style.css';
 
@@ -71,7 +73,9 @@ class OMSOlMapComponent extends React.Component {
         super(props);
         this.state = {
             baseMaps: [],
-            baseMapId: 0
+            baseMapId: 0,
+            legend: null,
+            minLegend: false
         }
         this.onMapClick = this.onMapClick.bind(this);
         this.yaSyncCenter = this.yaSyncCenter.bind(this);
@@ -127,7 +131,9 @@ class OMSOlMapComponent extends React.Component {
             this.props.height === nextProps.height;
         const sameSeries = isSameSeries(this.props.series, nextProps.series);
         const sameBaseMap = this.state.baseMapId === nextState.baseMapId;
-        return !sameSize || !sameSeries || !sameBaseMap;
+        const sameLegend = this.state.legend === nextState.legend;
+        const sameLegendMin = this.state.minLegend === nextState.minLegend;
+        return !sameSize || !sameSeries || !sameBaseMap || !sameLegend || !sameLegendMin;
     }
 
     getMapParams() {
@@ -601,8 +607,34 @@ class OMSOlMapComponent extends React.Component {
         </div>  
     }
 
+    renderLegend() {
+        return null;
+    }
+
+    renderLegendWrapper() {
+        const { minLegend } = this.state;
+        return <div className={css.omsMapLegendWrapper}>
+            <div className={cx(css.omsMapLegend, 'bg-white', 'rounded')}>
+                <div className={css.omsMapLegendWrapperMin}>
+                   <Icon 
+                      name="chevronleft" 
+                      className="text-medium" 
+                      size={12} 
+                      style={{transform: minLegend ? 'rotate(90deg)' : 'rotate(270deg)', cursor: 'pointer'}}
+                      onClick={() => this.setState({minLegend: !minLegend})}
+                      title={minLegend ? 'Развернуть легенду' : 'Свернуть легенду'}
+                    />
+                </div>
+                <div className={css.omsMapLegendContentWrapper} style={{padding: minLegend ? 0 : 10}}>
+                    {!minLegend && this.renderLegend()}
+                </div>
+            </div>
+        </div>
+    }
+
     render() {
         const { onHoverChange } = this.props;
+        const { legend } = this.state;
         return (
             <div
                 className={css.omsMap}
@@ -612,6 +644,7 @@ class OMSOlMapComponent extends React.Component {
                 <div className={css.yandexBase} ref={this._yaContainer}></div>
                 <div className={css.googleBase} ref={this._gooContainer}></div>
                 {this.renderBaseMapSwitcher()}
+                {legend && this.renderLegendWrapper()}
             </div>
         );
     }

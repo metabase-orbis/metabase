@@ -2,3 +2,25 @@
   width: 100%;
   height: 100%;
 }
+
+:local .omsMapThematicLegend {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+:local .omsMapThematicLegendColors {
+  display: flex;
+  margin-bottom: 10px;
+  height: 20px;
+  justify-content: stretch;
+}
+
+:local .omsMapThematicLegendColors > div {
+  flex-grow: 1;
+}
+
+:local .omsMapThematicLegendValues {
+  display: flex;
+  justify-content: space-between;
+}

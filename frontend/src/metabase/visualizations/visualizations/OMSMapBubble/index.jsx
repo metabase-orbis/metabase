@@ -69,6 +69,12 @@ class OMSMapBubbleComponent extends OMSOlMap {
             title: `Колонка`,
             fieldFilter: isNumeric
         }),
+        'omsmapbubble.show_legend': {
+            section: 'Данные',
+            title: 'Легенда',
+            widget: "toggle",
+            default: false,
+        },
 
         "omsmapbubble.icon_color": {
             section: 'Иконка',
@@ -181,6 +187,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
         super.componentDidMount();
         this.updateCategoryClasses();
         this.updateMarkers();
+        this.updateLegend();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -193,6 +200,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
         if (!sameSeries) {
             this.updateCategoryClasses();
             this.updateMarkers();
+            this.updateLegend();
         }
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
@@ -220,6 +228,34 @@ class OMSMapBubbleComponent extends OMSOlMap {
 
     getMapUrl() {
         return this.props.settings['omsmapbubble.map_url']
+    }
+
+    updateLegend() {
+        const { series, settings } = this.props;
+        if (!settings['omsmapbubble.show_legend']) {
+            this.setState({ legend: null });
+            this.forceUpdate();
+            return;
+        }
+        const columnName = settings['omsmapbubble.column'];
+        const columnIndex = series[0].data.cols.findIndex(c => c.name === columnName);
+        const column = series[0].data.cols[columnIndex];
+        if (!isNumeric(column)) return;
+
+        let max = 0;
+        let min = 0;
+        series[0].data.rows.forEach(r => {
+            if (r[columnIndex] > max) max = r[columnIndex];
+            if (r[columnIndex] < min) min = r[columnIndex];
+        });
+        const config = {
+            type: 'bubble',
+            min,
+            max,
+            color: settings['omsmapbubble.icon_color'] || '#000',
+            borderColor: settings['omsmapbubble.icon_border_color'] || '#000'
+        }
+        this.setState({ legend: config });
     }
 
     updateCategoryClasses() {
@@ -389,6 +425,25 @@ class OMSMapBubbleComponent extends OMSOlMap {
 
         // Вернуть нужно диаметр
         return radius / 2;
+    }
+
+    renderLegend() {
+        const { legend } = this.state;
+        return <div className={styles.omsMapBubblesLegend}>
+            <div>{legend.min}</div>
+            {[10, 20, 30, 40, 50].map(d => {
+                return <div 
+                    className={styles.omsMapBubblesLegendItem}
+                    key={d}
+                    style={{
+                        minWidth: d, 
+                        minHeight: d, 
+                        backgroundColor: legend.color,
+                        border: `1px solid ${legend.borderColor}`
+                    }}/>    
+            })}
+            <div>{legend.max}</div>
+        </div>
     }
 }
 
