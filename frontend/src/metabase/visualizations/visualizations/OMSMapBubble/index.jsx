@@ -312,6 +312,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
                 color: '#ffffff',
                 width: 0.5
             }),
+            offsetY: radius + labelSize / 2
         }) : null;
 
         const strokeStyle = (borderSize > 0) 
