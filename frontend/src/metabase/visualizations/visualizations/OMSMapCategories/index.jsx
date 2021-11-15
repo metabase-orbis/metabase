@@ -380,7 +380,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         return <div className={styles.omsMapCategoryLegend}>
             {legend.lRows.map((r) => (<div className={styles.omsMapCategoryLegendItem} key={r.value}>
                 <div className={styles.omsMapCategoryLegendColor} style={{ backgroundColor: r.color }} />
-                <div>{r.value}</div>
+                <div className={styles.omsMapCategoryLegendTitle}>{r.value}</div>
             </div>))}
         </div>
     }

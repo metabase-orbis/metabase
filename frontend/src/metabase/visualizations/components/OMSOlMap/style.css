@@ -45,13 +45,19 @@
   flex-direction: column;
 }
 
-:local .omsMapLegendWrapperMin {
+:local .omsMapLegendWrapperHeader {
   width: 100%;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: 10px;
   pointer-events: all;
+  cursor: pointer;
+}
+
+:local .omsMapLegendWrapperHeader > .omsMapLegendWrapperHeaderTitle {
+  margin-right: 10px;
+  font-weight: bold;
 }
 
 :local .omsMapLegendContentWrapper {

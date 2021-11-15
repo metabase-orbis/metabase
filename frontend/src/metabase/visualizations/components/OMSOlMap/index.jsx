@@ -599,13 +599,14 @@ class OMSOlMapComponent extends React.Component {
         const { minLegend } = this.state;
         return <div className={css.omsMapLegendWrapper}>
             <div className={cx(css.omsMapLegend, 'bg-white', 'rounded')}>
-                <div className={css.omsMapLegendWrapperMin}>
+                <div className={css.omsMapLegendWrapperHeader}
+                     onClick={() => this.setState({minLegend: !minLegend})}>
+                    <div className={css.omsMapLegendWrapperHeaderTitle}>Легенда</div>
                    <Icon 
                       name="chevronleft" 
                       className="text-medium" 
                       size={12} 
                       style={{transform: minLegend ? 'rotate(90deg)' : 'rotate(270deg)', cursor: 'pointer'}}
-                      onClick={() => this.setState({minLegend: !minLegend})}
                       title={minLegend ? 'Развернуть легенду' : 'Свернуть легенду'}
                     />
                 </div>

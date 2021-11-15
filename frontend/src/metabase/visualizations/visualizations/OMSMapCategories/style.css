@@ -19,5 +19,11 @@
 :local .omsMapCategoryLegendColor {
   height: 20px;
   width: 20px;
+  min-width: 20px;
+  min-height: 20px;
   margin-right: 10px;
+}
+
+:local .omsMapCategoryLegendTitle {
+  word-break: break-word;
 }

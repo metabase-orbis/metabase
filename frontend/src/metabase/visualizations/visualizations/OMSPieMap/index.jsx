@@ -332,7 +332,7 @@ class OMSPieMapComponent extends OMSOlMap {
         return <div className={css.omsMapPieLegend}>
             {legend.lRows.map((r) => (<div className={css.omsMapPieLegendItem} key={r.name}>
                 <div className={css.omsMapPieLegendColor} style={{ backgroundColor: r.color }} />
-                <div>{r.name}</div>
+                <div className={css.omsMapPieLegendTitle}>{r.name}</div>
             </div>))}
         </div>
     }
