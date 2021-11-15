@@ -1,6 +1,7 @@
 :local .distinctWrapper {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  margin: 3px 0;
 }
 
 :local .distinctWrapper:last-of-type {
@@ -23,10 +24,10 @@
 
 :local .distinctInfoValue {
   margin-left: 4px;
+  word-break: break-word;
 }
 
 :local .colorPickerWrapper {
-  margin: 3px 0;
   flex-grow: 1;
   display: flex;
   justify-content: flex-end;
