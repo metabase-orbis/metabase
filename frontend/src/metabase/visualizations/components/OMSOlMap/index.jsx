@@ -66,8 +66,6 @@ class OMSOlMapComponent extends React.Component {
     _googleMapsApiKey = '';
     _gooMap;
     _gooContainer = React.createRef();
-    _googBaseTimeout;
-    _lastRes;
 
     constructor(props) {
         super(props);
@@ -394,8 +392,6 @@ class OMSOlMapComponent extends React.Component {
             .querySelector('[class*=copyrights-pane]')
             .style.display = 'block';
 
-       this._lastRes = this._map.getView().getResolution();
-
         this._map.on('precompose', this.yaSyncCenter);
         this._map.on('change:size', this.yaSyncSize);
     }
@@ -516,19 +512,8 @@ class OMSOlMapComponent extends React.Component {
     }
 
     gooSyncCenter(e) {
-        let that     = this;
-        let startRes = this._lastRes;
-        let endRes   = this._map.getView().getResolution();
-
-            if (startRes == endRes) {
-                let center = transform(e.frameState.viewState.center, this._map.getView().getProjection().getCode(), 'EPSG:4326');
-                this._gooMap.setCenter(new window.google.maps.LatLng(center[1], center[0]));
-            }
-
-            clearTimeout(this._googBaseTimeout);
-            this._googBaseTimeout = setTimeout(function () {
-                this._lastRes = that._map.getView().getResolution();
-            }, 50)
+        let center = transform(e.frameState.viewState.center, this._map.getView().getProjection().getCode(), 'EPSG:4326');
+        this._gooMap.setCenter(new window.google.maps.LatLng(center[1], center[0]));
     }
 
     gooSyncZoom() {
@@ -539,7 +524,6 @@ class OMSOlMapComponent extends React.Component {
             center: new window.google.maps.LatLng(center[1], center[0])
         });
     }
-
 
     gooSyncSize() {
         var center = this._map.getView().getCenter();
