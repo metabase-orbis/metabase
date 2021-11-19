@@ -23,7 +23,7 @@
 }
 
 :local .distinctInfoValue {
-  margin-left: 4px;
+  margin: 0 4px;
   word-break: break-word;
 }
 
