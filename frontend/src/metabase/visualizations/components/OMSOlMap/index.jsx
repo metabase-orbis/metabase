@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
+import { isMobile } from 'react-device-detect';
 import OLMap from 'ol/Map';
 import TileLayer from 'ol/layer/Tile';
 import { OSM, XYZ, TileWMS, TileArcGISRest } from 'ol/source';
@@ -154,7 +155,7 @@ class OMSOlMapComponent extends React.Component {
         return column;
     }
 
-    getObjectConfig(featureData, e) {
+    getObjectConfig(featureData, e, isBalloon) {
         const { series, settings } = this.props;
         if (!featureData) return null;
         let data = [];
@@ -169,8 +170,10 @@ class OMSOlMapComponent extends React.Component {
             col: c
         })).filter(c => 
             c.col.name !== 'orbis_id' && 
-            c.col.name !== 'geom' && 
-            (typeof c.value === 'number' ? true : c.value));
+            c.col.name !== 'geom')
+        if (isBalloon) {
+            data = data.filter(c => typeof c.value === 'number' ? true : c.value);
+        }
         dimensions = cols.map((c) => ({
             column: c,
             value: featureData[c.name]
@@ -541,32 +544,40 @@ class OMSOlMapComponent extends React.Component {
     }
     setInteractions() {
         const { onHoverChange } = this.props;
-        this._map.on('pointermove', (e) => {
-            let feature = getOlFeatureOnPixel(this._map, e.pixel);
-            if (feature) {
-                if (onHoverChange) {
-                    const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-                    onHoverChange(this.getObjectConfig(data, e));
+        if (!isMobile) {
+            this._map.on('pointermove', (e) => {
+                let feature = getOlFeatureOnPixel(this._map, e.pixel);
+                if (feature) {
+                    if (onHoverChange) {
+                        const data = getOlFeatureInfoFromSeries(feature, this.props.series);
+                        onHoverChange(this.getObjectConfig(data, e, true));
+                    }
+                    this._mapMountEl.style.cursor = 'pointer';
+                } else {
+                    if (onHoverChange) {
+                        onHoverChange(null);
+                    }
+                    this._mapMountEl.style.cursor = 'default';
                 }
-                this._mapMountEl.style.cursor = 'pointer';
-            } else {
-                if (onHoverChange) {
-                    onHoverChange(null);
-                }
-                this._mapMountEl.style.cursor = 'default';
-            }
-        });
-
+            });
+        }
+        
         this._map.on('click', this.onMapClick)
     }
 
     onMapClick(e) {
-        const { onVisualizationClick } = this.props;
+        const { onVisualizationClick, onHoverChange } = this.props;
         let feature = getOlFeatureOnPixel(this._map, e.pixel);
-        if (!feature) return;
+        if (!feature) {
+            if (isMobile && onHoverChange) onHoverChange(null) 
+            return;
+        }
         const data = getOlFeatureInfoFromSeries(feature, this.props.series);
-        if (onVisualizationClick) {
+        if (onVisualizationClick && !isMobile) {
             onVisualizationClick(this.getObjectConfig(data, e));
+        }
+        if (onHoverChange && isMobile) {
+            onHoverChange(this.getObjectConfig(data, e, true))
         }
     }
 
