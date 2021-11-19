@@ -167,7 +167,10 @@ class OMSOlMapComponent extends React.Component {
             key: c.display_name || c.name,
             value: featureData[c.name],
             col: c
-        })).filter(c => c.col.name !== 'orbis_id' && c.col.name !== 'geom');
+        })).filter(c => 
+            c.col.name !== 'orbis_id' && 
+            c.col.name !== 'geom' && 
+            (typeof c.value === 'number' ? true : c.value));
         dimensions = cols.map((c) => ({
             column: c,
             value: featureData[c.name]
