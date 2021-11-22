@@ -10,8 +10,11 @@ import VectorSource from 'ol/source/Vector';
 import { transform, toLonLat } from 'ol/proj';
 import cx from 'classnames';
 import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
+import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
 import { getConfigFromOMSMap } from 'metabase/services';
 import Select, { Option } from "metabase/components/Select";
+import type { SettingDef } from 'metabase/visualizations/lib/settings';
+
 import Icon from "metabase/components/Icon";
 
 import css from './style.css';
@@ -20,7 +23,7 @@ const defaultSources = {
     0: new OSM()
 }
 
-const defaultBaseMapsConfig =  [{container_id: 0,
+export const defaultBaseMapsConfig =  [{container_id: 0,
     copyright: null,
     id: 1000,
     localized_name: false,
@@ -32,6 +35,38 @@ const defaultBaseMapsConfig =  [{container_id: 0,
     value: "OSM",
     vector: false
 }];
+
+
+let requestTimeout = 0;
+export const requestBaseMaps = (mapUrl, onChange) => {
+    clearTimeout(requestTimeout);
+    const defaultConfig = {
+        mapUrl,
+        googleMapsApiKey: null,
+        baseMaps: defaultBaseMapsConfig
+    };
+    requestTimeout = setTimeout(async () => {
+        if (!mapUrl) {
+            return;
+        }
+        const a = document.createElement('a');
+        a.href = mapUrl;
+        let url = `${a.protocol}//${a.host}${a.pathname}`;
+        let config = null;
+        try {
+            config = await getConfigFromOMSMap(url);
+            onChange({
+                mapUrl,
+                googleMapsApiKey: config.google_maps_api_key,
+                baseMaps: config.publication.base_maps
+            });
+        } catch(e) {
+            console.warn(e);
+            config = defaultBaseMapsConfig;
+            onChange(defaultConfig);
+        }
+    }, 500)
+}
 
 
 const sourceAliases = {
@@ -49,6 +84,68 @@ class OMSOlMapComponent extends React.Component {
     /**
      * @type {import('ol/Map')}
      */
+
+
+    static getSettings(identifier): { [k: string]: SettingDef; } {
+        return {
+            [`${identifier}.mapParams`]: {
+                section: 'Карта',
+                title: 'Параметры карты',
+                widget: OMSInputGroup,
+                names: ['Масштаб', 'Координаты центра'],
+                default: [2, 0, 0],
+                types: ['number', 'number', 'number'],
+                setValueTitle: 'Текущая позиция карты'
+            },
+            [`${identifier}.map_url`]: {
+                section: 'Карта',
+                title: 'Ссылка на карту OMS',
+                widget: 'input',
+                default: ''
+            },
+            [`${identifier}.base_maps_list`]: {
+                getProps: ([{data, card}], computed, onChange) => {
+                    const mapUrl = computed[`${identifier}.map_url`];
+                    const value = computed[`${identifier}.base_maps_list`];
+                    const oldUrl = value ? value.mapUrl : null;
+                    if (mapUrl && mapUrl !== oldUrl) {
+                        requestBaseMaps(mapUrl, onChange);
+                    }
+                    return  {}
+                },
+                hidden: true,
+                getDefault: ([{data, card}], computed) => ({
+                    mapUrl: computed[`${identifier}.base_maps_list`] ? computed[`${identifier}.base_maps_list`].mapUrl : null, 
+                    googleMapsApiKey: null,
+                    baseMaps: defaultBaseMapsConfig
+                })
+            },
+            [`${identifier}.default_base_map`]: {
+                section: 'Карта',
+                title: 'Базовая карта по умолчанию',
+                widget: 'select',
+                getProps: ([{data, card}], computed) => {
+                    const options = [];
+                    if (computed[`${identifier}.base_maps_list`]) {
+                        computed[`${identifier}.base_maps_list`].baseMaps.forEach(c => options.push({value: c.id, name: c.name}))
+                    } else {
+                        defaultBaseMapsConfig.forEach(c => options.push({value: c.id, name: c.name}))
+                    }
+                    return {
+                        options
+                    }
+                },
+                getDefault: ([{data, card}], computed) => {
+                    let defautValue = '';
+                    if (computed[`${identifier}.base_maps_list`]) {
+                        defautValue = computed[`${identifier}.base_maps_list`].baseMaps[0].id
+                    }
+                    return defautValue || defaultBaseMapsConfig[0].id;
+                }
+            }
+        }
+    }
+
     _map;
     _vectorLayer = new VectorLayer({
         source: new VectorSource()
@@ -71,7 +168,6 @@ class OMSOlMapComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            baseMaps: [],
             baseMapId: 0,
             legend: null,
             minLegend: false
@@ -197,41 +293,33 @@ class OMSOlMapComponent extends React.Component {
         return '';
     }
 
+    getBaseMaps() {
+        return { baseMaps: defaultBaseMapsConfig }
+    }
+
+    getDefaultBaseMap() {
+        return null;
+    }
+
     setBaseMaps() {
-        clearTimeout(this._setBaseMapsTimeout);
-        this._setBaseMapsTimeout = setTimeout(async () => {
-            const mapUrl = this.getMapUrl();
-            if (!mapUrl) {
-                this.setBaseSources(defaultBaseMapsConfig);
-                this.setState({
-                    baseMapId: defaultBaseMapsConfig[0].id,
-                    baseMaps: defaultBaseMapsConfig
-                });
-                return;
-            }
-            const a = document.createElement('a');
-            a.href = mapUrl;
-            let url = `${a.protocol}//${a.host}${a.pathname}`;
-            let config = null;
-            try {
-                config = await getConfigFromOMSMap(url);
-                this._googleMapsApiKey = config.google_maps_api_key;
-                config = config.publication.base_maps;
-            } catch(e) {
-                console.warn(e);
-                config = defaultBaseMapsConfig;
-            }
-            this.setBaseSources(config);
-            const selected = config.find(bm => bm.selected);
-            this.setState({
-                baseMapId: selected ? selected.id : config[0].id,
-                baseMaps: config.filter(bm => bm.value !== 'cadastre')
-            });
-        }, 500)
+        const { baseMaps, googleMapsApiKey } = this.getBaseMaps();
+        const defaultSelected = this.getDefaultBaseMap();
+        this.setBaseSources(baseMaps);
+        this._googleMapsApiKey = googleMapsApiKey;
+
+        let selected = baseMaps.find(bm => bm.id === defaultSelected);
+        if (!selected) {
+            selected = baseMaps.find(bm => bm.selected);
+        }
+
+        this.setState({
+            baseMapId: selected ? selected.id : baseMaps[0].id
+        });
     }
 
     switchBaseMap() {
-        const { baseMapId, baseMaps } = this.state;
+        const { baseMapId } = this.state;
+        const { baseMaps } = this.getBaseMaps();
         const baseMap = baseMaps.find(bm => bm.id === baseMapId);
         this.hideYaMap();
         this.hideGooMap();
@@ -428,6 +516,7 @@ class OMSOlMapComponent extends React.Component {
     }
 
     initGooMap(layerType) {
+        const { baseMaps } = this.getBaseMaps();
         const initPromise = new Promise((resolve, reject) => {
             if (window.google === undefined) {
                 const googleApi = document.createElement('script');
@@ -474,7 +563,7 @@ class OMSOlMapComponent extends React.Component {
             view.on('change:resolution', () => {
                 const needToHide = this._map.getView().getZoom() > 19;
                 const isShow = this._gooContainer.current.style.display === "block";
-                const currentSource = this.state.baseMaps.find(bm => bm.id === this.state.baseMapId).value
+                const currentSource = baseMaps.find(bm => bm.id === this.state.baseMapId).value
                 if (isShow && needToHide) { 
                     this.hideGooMap();
                 } else if (!isShow && needToHide) { 
@@ -590,7 +679,8 @@ class OMSOlMapComponent extends React.Component {
     }
 
     renderBaseMapSwitcher() {
-        const { baseMaps, baseMapId } = this.state;
+        const { baseMapId } = this.state;
+        const { baseMaps } = this.getBaseMaps();
         return <div className={css.omsMapBaseMaps}>
             <Select value={baseMapId}
                     onChange={e => this.setState({baseMapId: e.target.value})}>

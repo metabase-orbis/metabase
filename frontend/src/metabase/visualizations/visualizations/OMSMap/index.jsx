@@ -65,7 +65,7 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             widget: "number",
             default: 12,
         },
-        'olmap.show-label': {
+        'olmap.show_label': {
             section: 'Подпись',
             title: 'Показывать подпись',
             widget: "toggle",
@@ -102,22 +102,8 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             widget: "number",
             default: 0,
         },
-        'olmap.mapParams': {
-            section: 'Карта',
-            title: 'Параметры карты',
-            widget: OMSInputGroup,
-            names: ['Масштаб', 'Координаты центра'],
-            default: [2, 0, 0],
-            types: ['number', 'number', 'number'],
-            setValueTitle: 'Текущая позиция карты'
-        },
-        'olmap.map_url': {
-            section: 'Карта',
-            title: 'Ссылка на карту',
-            widget: 'input',
-            default: ''
-        }
-    };
+        ...OMSOlMap.getSettings('olmap')
+    }
 
     componentDidMount() {
         super.componentDidMount();
@@ -127,7 +113,6 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         super.componentDidUpdate(prevProps, prevState, snapshot);
-
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
 
         if (!sameSeries) {
@@ -144,11 +129,18 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             this.updateMapState();
         }
 
-        const mapUrl = this.props.settings['olmap.map_url'];
-        const prevMapUrl = prevProps.settings['olmap.map_url'];
+        const mapUrl = this.props.settings['olmap.base_maps_list'].mapUrl;
+        const prevMapUrl = prevProps.settings['olmap.base_maps_list'].mapUrl;
         if (mapUrl !== prevMapUrl) {
             this.setBaseMaps();
         }
+       
+        const baseMap = this.props.settings['olmap.default_base_map'];
+        const prevBaseMap = prevProps.settings['olmap.default_base_map'];
+        if (baseMap !== prevBaseMap) {
+            this.setState({baseMapId: baseMap})
+        }
+        console.log(this.props.settings);
     }
 
     getMapParams() {
@@ -175,10 +167,18 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         return this.props.settings['olmap.map_url']
     }
 
+    getBaseMaps() {
+        return this.props.settings['olmap.base_maps_list']
+    }
+
+    getDefaultBaseMap() {
+        return this.props.settings['olmap.default_base_map']
+    }
+
     regenerateStyles() {
         const { settings } = this.props;
         this._vectorLayer.getSource().getFeatures().forEach(f => {
-            const textStyle = settings['olmap.show-label']
+            const textStyle = settings['olmap.show_label']
             ? new Text({
                 font: `${settings['olmap.label_font_size']}px sans-serif`,
                 text: f.get('label'),

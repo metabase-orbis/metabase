@@ -68,7 +68,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             min: 0,
             max: 100
         },
-        'olmapcategories.show-label': {
+        'olmapcategories.show_label': {
             section: 'Подпись',
             title: 'Показывать подпись',
             widget: "toggle",
@@ -94,21 +94,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
                 fancy: true,
             })
         },
-        'olmapcategories.mapParams': {
-            section: 'Карта',
-            title: 'Параметры карты',
-            widget: OMSInputGroup,
-            names: ['Масштаб', 'Координаты центра'],
-            default: [2, 0, 0],
-            types: ['number', 'number', 'number'],
-            setValueTitle: 'Текущая позиция карты'
-        },
-        'olmapcategories.map_url': {
-            section: 'Карта',
-            title: 'Ссылка на карту',
-            widget: 'input',
-            default: ''
-        }
+        ...OMSOlMap.getSettings('olmapcategories')
     };
 
     static isSensible({ cols, rows }) {
@@ -162,10 +148,16 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
-        const mapUrl = this.props.settings['olmapcategories.map_url'];
-        const prevMapUrl = prevProps.settings['olmapcategories.map_url'];
+        const mapUrl = this.props.settings['olmapcategories.base_maps_list'].mapUrl;
+        const prevMapUrl = prevProps.settings['olmapcategories.base_maps_list'].mapUrl;
         if (mapUrl !== prevMapUrl) {
             this.setBaseMaps();
+        }
+
+        const baseMap = this.props.settings['olmapcategories.default_base_map'];
+        const prevBaseMap = prevProps.settings['olmapcategories.default_base_map'];
+        if (baseMap !== prevBaseMap) {
+            this.setState({baseMapId: baseMap})
         }
     }
 
@@ -189,6 +181,13 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
     getMapUrl() {
         return this.props.settings['olmapcategories.map_url'];
+    }
+    getBaseMaps() {
+        return this.props.settings['olmapcategories.base_maps_list']
+    }
+
+    getDefaultBaseMap() {
+        return this.props.settings['olmapcategories.default_base_map']
     }
 
     updateLegend() {
@@ -235,7 +234,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         const idColumnIndex = _.findIndex(cols, isIdColumn);
         const labelIndex = _.findIndex(cols, (column) => column.name === settings['olmapcategories.label_column']);
-        const showLabel = settings['olmapcategories.show-label'];
+        const showLabel = settings['olmapcategories.show_label'];
         const labelFontSize = settings['olmapcategories.label_font_size'];
         const labelColor = settings['olmapcategories.label_color'];
         this._vectorLayer.getSource().clear();

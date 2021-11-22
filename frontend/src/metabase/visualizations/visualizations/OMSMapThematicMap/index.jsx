@@ -24,7 +24,7 @@ import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column
 import geostats from 'metabase/visualizations/lib/oms/geostats';
 import { isNumeric } from "metabase/lib/schema_metadata";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
-import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
+import { OMSOlMap, defaultBaseMapsConfig, requestBaseMaps } from 'metabase/visualizations/components/OMSOlMap';
 
 const Algorithm = Object.freeze({
     EqInterval: 0,
@@ -131,7 +131,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
             min: 0,
             max: 100
         },
-        'olmapthematicmap.show-label': {
+        'olmapthematicmap.show_label': {
             section: 'Подпись',
             title: 'Показывать подпись',
             widget: "toggle",
@@ -157,21 +157,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
                 fancy: true,
             })
         },
-        'olmapthematicmap.mapParams': {
-            section: 'Карта',
-            title: 'Параметры карты',
-            widget: OMSInputGroup,
-            names: ['Масштаб', 'Координаты центра'],
-            default: [2, 0, 0],
-            types: ['number', 'number', 'number'],
-            setValueTitle: 'Текущая позиция карты'
-        },
-        'olmapthematicmap.map_url': {
-            section: 'Карта',
-            title: 'Ссылка на карту',
-            widget: 'input',
-            default: ''
-        }
+        ...OMSOlMap.getSettings('olmapthematicmap')
     };
 
     static isSensible({ cols, rows }) {
@@ -214,10 +200,16 @@ class OMSMapThematicMapComponent extends OMSOlMap {
             this.updateMapState();
         }
 
-        const mapUrl = this.props.settings['olmapthematicmap.map_url'];
-        const prevMapUrl = prevProps.settings['olmapthematicmap.map_url'];
+        const mapUrl = this.props.settings['olmapthematicmap.base_maps_list'].mapUrl;
+        const prevMapUrl = prevProps.settings['olmapthematicmap.base_maps_list'].mapUrl;
         if (mapUrl !== prevMapUrl) {
             this.setBaseMaps();
+        }
+
+        const baseMap = this.props.settings['olmapthematicmap.default_base_map'];
+        const prevBaseMap = prevProps.settings['olmapthematicmap.default_base_map'];
+        if (baseMap !== prevBaseMap) {
+            this.setState({baseMapId: baseMap})
         }
     }
 
@@ -238,6 +230,15 @@ class OMSMapThematicMapComponent extends OMSOlMap {
     getMapUrl() {
         return this.props.settings['olmapthematicmap.map_url'];
     }
+
+    getBaseMaps() {
+        return this.props.settings['olmapthematicmap.base_maps_list']
+    }
+
+    getDefaultBaseMap() {
+        return this.props.settings['olmapthematicmap.default_base_map']
+    }
+
 
     updateCategoryClasses() {
         const { cols, rows } = this.props.data;
@@ -405,7 +406,7 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         const idColumnIndex = _.findIndex(cols, isIdColumn);
         const labelIndex = _.findIndex(cols, (column) => column.name === settings['olmapthematicmap.label_column']);
-        const showLabel = settings['olmapthematicmap.show-label'];
+        const showLabel = settings['olmapthematicmap.show_label'];
         const labelFontSize = settings['olmapthematicmap.label_font_size'];
         const labelColor = settings['olmapthematicmap.label_color'];
         this._vectorLayer.getSource().clear();

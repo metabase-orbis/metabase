@@ -64,7 +64,7 @@
                                    "https://*.googleapis.com"
                                    "https://www.google.com"
                                    "*.gstatic.com"
-                                   "http://api-maps.yandex.ru"
+                                   "api-maps.yandex.ru"
                                    "https://yastatic.net"
                                    ;; for webpack hot reloading
                                    (when config/is-dev?
@@ -82,6 +82,7 @@
                                  "'unsafe-inline'"
                                  "https://fonts.googleapis.com"]
                   :font-src     ["'self'"
+                                 "fonts.gstatic.com"
                                  (when config/is-dev?
                                    "localhost:8080")]
                   :img-src      ["*"

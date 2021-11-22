@@ -96,44 +96,30 @@ class OMSPieMapComponent extends OMSOlMap {
             min: 0,
             max: 100
         },
-        'omsmappie.outerRadius': {
+        'omsmappie.outer_radius': {
             section: 'Иконки',
             title: 'Наружный радиус',
             widget: 'number',
             default: 50,
             min: 0
         },
-        'omsmappie.innerRadius': {
+        'omsmappie.inner_radius': {
             section: 'Иконки',
             title: 'Внутренний радиус',
             widget: 'number',
             default: 10,
             min: 0,
             getProps: ([{card}]) => ({
-                max: card.visualization_settings['omsmappie.outerRadius'] - 5
+                max: card.visualization_settings['omsmappie.outer_radius'] - 5
             }),
         },
-        'omsmappie.showNames': {
+        'omsmappie.show_names': {
             section: 'Иконки',
             title: 'Отображать наименования',
             widget: "toggle",
             default: false,
         },
-        'omsmappie.mapParams': {
-            section: 'Карта',
-            title: 'Параметры карты',
-            widget: OMSInputGroup,
-            names: ['Масштаб', 'Координаты центра'],
-            default: [2, 0, 0],
-            types: ['number', 'number', 'number'],
-            setValueTitle: 'Текущая позиция карты'
-        },
-        'omsmappie.map_url': {
-            section: 'Карта',
-            title: 'Ссылка на карту',
-            widget: 'input',
-            default: ''
-        }
+        ...OMSOlMap.getSettings('omsmappie')
     };
 
     static isSensible({ cols, rows }) {
@@ -166,10 +152,16 @@ class OMSPieMapComponent extends OMSOlMap {
             this.updateMapState();
         }
 
-        const mapUrl = this.props.settings['omsmappie.map_url'];
-        const prevMapUrl = prevProps.settings['omsmappie.map_url'];
+        const mapUrl = this.props.settings['omsmappie.base_maps_list'].mapUrl;
+        const prevMapUrl = prevProps.settings['omsmappie.base_maps_list'].mapUrl;
         if (mapUrl !== prevMapUrl) {
             this.setBaseMaps();
+        }
+
+        const baseMap = this.props.settings['omsmappie.default_base_map'];
+        const prevBaseMap = prevProps.settings['omsmappie.default_base_map'];
+        if (baseMap !== prevBaseMap) {
+            this.setState({baseMapId: baseMap})
         }
     }
 
@@ -179,6 +171,14 @@ class OMSPieMapComponent extends OMSOlMap {
 
     getMapUrl() {
         return this.props.settings['omsmappie.map_url'];
+    }
+
+    getBaseMaps() {
+        return this.props.settings['omsmappie.base_maps_list']
+    }
+
+    getDefaultBaseMap() {
+        return this.props.settings['omsmappie.default_base_map']
     }
 
     geojsonToFeature(wkbBuff) {
@@ -203,11 +203,11 @@ class OMSPieMapComponent extends OMSOlMap {
     @memoize
     generateStyle(row) {
         const { data, settings } = this.props;
-        let outerR = settings['omsmappie.outerRadius'];
-        let innerR = settings['omsmappie.innerRadius'];
+        let outerR = settings['omsmappie.outer_radius'];
+        let innerR = settings['omsmappie.inner_radius'];
         if (outerR < innerR) {
-            outerR = settings['omsmappie.innerRadius'];
-            innerR = settings['omsmappie.outerRadius'];
+            outerR = settings['omsmappie.inner_radius'];
+            innerR = settings['omsmappie.outer_radius'];
         }
         const increase = 50;
         const { cols } = data;
@@ -256,7 +256,7 @@ class OMSPieMapComponent extends OMSOlMap {
             const text = document.createElement('text');
             text.setAttribute('transform', `translate(${arc.centroid(v)})`);
             const tspan = document.createElement('tspan');
-            tspan.innerText = settings['omsmappie.showNames'] ? v.data.displayValue : v.data.value;
+            tspan.innerText = settings['omsmappie.show_names'] ? v.data.displayValue : v.data.value;
             tspan.setAttribute('width', '10px');
             tspan.setAttribute('word-wrap', 'break-word');
             text.appendChild(tspan);

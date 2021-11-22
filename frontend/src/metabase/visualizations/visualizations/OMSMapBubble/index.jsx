@@ -140,7 +140,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
             widget: "number",
             default: 0,
         },
-        'omsmapbubble.show-label': {
+        'omsmapbubble.show_label': {
             section: 'Подпись',
             title: 'Показывать подпись',
             widget: "toggle",
@@ -166,21 +166,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
                 fancy: true,
             })
         },
-        'omsmapbubble.mapParams': {
-            section: 'Карта',
-            title: 'Параметры карты',
-            widget: OMSInputGroup,
-            names: ['Масштаб', 'Координаты центра'],
-            default: [2, 0, 0],
-            types: ['number', 'number', 'number'],
-            setValueTitle: 'Текущая позиция карты'
-        },
-        'omsmapbubble.map_url': {
-            section: 'Карта',
-            title: 'Ссылка на карту',
-            widget: 'input',
-            default: ''
-        }
+        ...OMSOlMap.getSettings('omsmapbubble')
     };
 
     componentDidMount() {
@@ -205,10 +191,16 @@ class OMSMapBubbleComponent extends OMSOlMap {
         if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
             this.updateMapState();
         }
-        const mapUrl = this.props.settings['omsmapbubble.map_url'];
-        const prevMapUrl = prevProps.settings['omsmapbubble.map_url'];
+        const mapUrl = this.props.settings['omsmapbubble.base_maps_list'].mapUrl;
+        const prevMapUrl = prevProps.settings['omsmapbubble.base_maps_list'].mapUrl;
         if (mapUrl !== prevMapUrl) {
             this.setBaseMaps();
+        }
+       
+        const baseMap = this.props.settings['omsmapbubble.default_base_map'];
+        const prevBaseMap = prevProps.settings['omsmapbubble.default_base_map'];
+        if (baseMap !== prevBaseMap) {
+            this.setState({baseMapId: baseMap})
         }
     }
 
@@ -228,6 +220,14 @@ class OMSMapBubbleComponent extends OMSOlMap {
 
     getMapUrl() {
         return this.props.settings['omsmapbubble.map_url']
+    }
+
+    getBaseMaps() {
+        return this.props.settings['omsmapbubble.base_maps_list']
+    }
+
+    getDefaultBaseMap() {
+        return this.props.settings['omsmapbubble.default_base_map']
     }
 
     updateLegend() {
@@ -341,7 +341,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
         const labelIndex = _.findIndex(cols, (column) => column.name === settings['omsmapbubble.label_column']);
         this._vectorLayer.getSource().clear();
         const params = [
-            settings['omsmapbubble.show-label'],
+            settings['omsmapbubble.show_label'],
             settings['omsmapbubble.label_font_size'],
             settings['omsmapbubble.label_color'],
             settings['omsmapbubble.icon_border_color'],
