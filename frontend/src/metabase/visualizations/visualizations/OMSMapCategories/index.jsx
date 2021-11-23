@@ -4,7 +4,7 @@ import _ from 'underscore';
 import GeoJSONFormatter from 'ol/format/GeoJSON';
 import WKB from 'ol/format/WKB';
 import Projection from 'ol/proj/Projection';
-import { Fill, Stroke, Circle, Style, Text } from 'ol/style';
+import { Fill, Stroke, Circle, Style, Text, Icon } from 'ol/style';
 import Feature from 'ol/Feature';
 import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
@@ -29,6 +29,7 @@ import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column
 import { Row } from 'metabase-types/types/Dataset';
 import { memoize } from 'metabase-lib/lib/utils';
 import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
+import { div } from 'grid-styled';
 
 export interface IOMSMapProps extends VisualizationProps { }
 export interface IOMSMapState { }
@@ -200,9 +201,11 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         const uniqueValues = getUniqueValues(series[0].data.rows, getColumnIndexByName(series[0].data.cols, rainbowSettings.column));
         const lRows = uniqueValues.map((v, i) => {
             let color = this.savedColors[v.value] || this.rainbow[i] || '#000000';
+            let icon = rainbowSettings.showIcons[v.value] ? rainbowSettings.iconsPath[v.value] : null;
             return {
                 value: v.value,
-                color: color
+                color,
+                icon
             }
         });
         const config = {
@@ -219,7 +222,6 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             savedColors = {},
             uncheckedValues = []
         } = settings;
-
 
         this.selectedColumnIndex = getColumnIndexByName(cols, settings.column);
         this.uniqueValues = getUniqueValues(rows, this.selectedColumnIndex);
@@ -238,6 +240,8 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         const labelFontSize = settings['olmapcategories.label_font_size'];
         const labelColor = settings['olmapcategories.label_color'];
         this._vectorLayer.getSource().clear();
+        const iconsPath = settings['olmapcategories.settings'] ? settings['olmapcategories.settings'].iconsPath || {} : {};
+        const showIcons = settings['olmapcategories.settings'] ? settings['olmapcategories.settings'].showIcons || {} : {};
 
         if (geomColumnIndex === -1) {
             console.error('Ошибка получения колонки геометрии');
@@ -252,17 +256,21 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             const geoJSON = row[geomColumnIndex];
             const id = row[idColumnIndex];
             const label = String(row[labelIndex]);
+            const showIcon = showIcons[row[this.selectedColumnIndex]];
+            const iconPath = showIcon ? iconsPath[row[this.selectedColumnIndex]] : null;
             if (geoJSON === null) {
                 continue;
             }
-
             const features = this.geojsonToFeature(geoJSON);
             if (this.selectedColumnIndex !== -1) {
                 for (const feature of features) {
+                    
                     const color = this.getRainbowColorForRow(row);
                     const opacity = this.props.settings['olmapcategories.opacity'] || 100;
 
-                    feature.setStyle(this.generateStyleForColor(color, opacity, showLabel, label, labelFontSize, labelColor));
+                    this.generateStyleForColor(color, opacity, showLabel, label, labelFontSize, labelColor, iconPath).then((style) => {
+                        feature.setStyle(style);
+                    })
                     feature.set('id', id);
                 }
             } else {
@@ -287,11 +295,56 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         return geom;
     }
 
+
+    generatePointStyle(textStyle, colorWithOpacity, iconPath) {
+        const circleStyle = new Circle({
+            fill: new Fill({
+                color: colorWithOpacity
+            }),
+            radius: 5,
+            stroke: new Stroke({
+                color: '#ffffff',
+                width: 0.5
+            }),
+        });
+        return new Promise((resolve, reject) => {
+            if (iconPath) {
+                const img = document.createElement('img');
+                img.src = iconPath;
+                img.onload = () => {
+                    const imgStyle = new Icon({
+                        img,
+                        anchor: [img.width / 2, img.height / 2],
+                        anchorXUnits : 'pixels',
+                        anchorYUnits : 'pixels',
+                        imgSize: [img.width, img.height],
+                        size: [img.width, img.height]
+                    })
+                    resolve(new Style({
+                        image: imgStyle,
+                        text: textStyle
+                    }))
+                }
+                img.onerror = () => {
+                    resolve(new Style({
+                        image: circleStyle,
+                        text: textStyle
+                    }));
+                }
+            } else {
+                resolve(new Style({
+                    image: circleStyle,
+                    text: textStyle
+                }));
+            }
+        })
+    }
+
     @memoize
-    generateStyleForColor(color: string, opacity: number, showLabel, label, labelSize, labelColor) {
+    generateStyleForColor(color: string, opacity: number, showLabel, label, labelSize, labelColor, iconPath) {
         const [r, g, b, a] = colorAsArray(color);
         const colorWithOpacity = [r, g, b, opacity / 100];
-
+        
         const textStyle = showLabel 
         ?  new Text({
             font: `${labelSize}px sans-serif`,
@@ -305,49 +358,37 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             }),
         }) : null;
 
-        const styles = {};
-        styles[GeometryType.LINE_STRING] = [
-            new Style({
-                stroke: new Stroke({
-                    color: colorWithOpacity,
-                    width: 2
-                }),
-                text: textStyle
-            })
-        ];
-        styles[GeometryType.MULTI_LINE_STRING] = styles[GeometryType.LINE_STRING];
+        return this.generatePointStyle(textStyle, colorWithOpacity, iconPath).then((pointStyle) => {
+            const styles = {};
+            styles[GeometryType.LINE_STRING] = [
+                new Style({
+                    stroke: new Stroke({
+                        color: colorWithOpacity,
+                        width: 2
+                    }),
+                    text: textStyle
+                })
+            ];
+            styles[GeometryType.MULTI_LINE_STRING] = styles[GeometryType.LINE_STRING];
 
-        styles[GeometryType.POINT] = [
-            new Style({
-                image: new Circle({
+            styles[GeometryType.POINT] = [ pointStyle ];
+            styles[GeometryType.MULTI_POINT] = styles[GeometryType.POINT];
+
+            styles[GeometryType.POLYGON] = [
+                new Style({
                     fill: new Fill({
                         color: colorWithOpacity
                     }),
-                    radius: 5,
-                    stroke: new Stroke({
-                        color: '#ffffff',
-                        width: 0.5
-                    }),
-                }),
-                text: textStyle
-            })
-        ];
-        styles[GeometryType.MULTI_POINT] = styles[GeometryType.POINT];
+                    text: textStyle
+                })
+            ];
+            styles[GeometryType.MULTI_POLYGON] = styles[GeometryType.POLYGON];
 
-        styles[GeometryType.POLYGON] = [
-            new Style({
-                fill: new Fill({
-                    color: colorWithOpacity
-                }),
-                text: textStyle
-            })
-        ];
-        styles[GeometryType.MULTI_POLYGON] = styles[GeometryType.POLYGON];
-
-        return function (feature: Feature) {
-            const geom = feature.getGeometry();
-            return geom ? (styles[geom.getType()] || []) : [];
-        };
+            return function (feature: Feature) {
+                const geom = feature.getGeometry();
+                return geom ? (styles[geom.getType()] || []) : [];
+            };
+        })
     }
 
     getRainbowColorForRow(row: Row) {
@@ -378,7 +419,11 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         const {legend} = this.state;
         return <div className={styles.omsMapCategoryLegend}>
             {legend.lRows.map((r) => (<div className={styles.omsMapCategoryLegendItem} key={r.value}>
-                <div className={styles.omsMapCategoryLegendColor} style={{ backgroundColor: r.color }} />
+                {r.icon 
+                ? <div className={styles.omsMapCategoryLegendIcon}>
+                    <img src={r.icon} />
+                </div> 
+                : <div className={styles.omsMapCategoryLegendColor} style={{ backgroundColor: r.color }} />}
                 <div className={styles.omsMapCategoryLegendTitle}>{r.value}</div>
             </div>))}
         </div>

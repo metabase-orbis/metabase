@@ -9,7 +9,7 @@ import Projection from 'ol/proj/Projection';
 import centerOfMass from '@turf/center-of-mass';
 import GeometryType from 'ol/geom/GeometryType';
 import { asArray as colorAsArray } from 'ol/color';
-import { Fill, Stroke, Circle, Style, Text } from 'ol/style';
+import { Fill, Stroke, Circle, Style, Text, Icon } from 'ol/style';
 import { transform } from 'ol/proj';
 import geostats from 'metabase/visualizations/lib/oms/geostats';
 
@@ -26,6 +26,7 @@ import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSIn
 import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
 
 import styles from './style.css';
+import { resolve } from 'bluebird';
 
 const Algorithm = Object.freeze({
     EqInterval: 0,
@@ -85,7 +86,11 @@ class OMSMapBubbleComponent extends OMSOlMap {
                 fancy: true,
             })
         },
-
+        'omsmapbubble.icon_path': {
+            section: 'Иконка',
+            title: 'Путь к иконке',
+            widget: 'input',
+        },
         'omsmapbubble.opacity': {
             section: 'Иконка',
             title: 'Непрозрачность',
@@ -253,6 +258,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
             min,
             max,
             color: settings['omsmapbubble.icon_color'] || '#000',
+            icon: settings['omsmapbubble.icon_path'],
             borderColor: settings['omsmapbubble.icon_border_color'] || '#000'
         }
         this.setState({ legend: config });
@@ -298,7 +304,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
      * @param {number} radius
      */
     @memoize
-    generateStyleForColor(color, opacity, radius, label, showLabel, labelSize, labelColor, borderColor, borderSize) {
+    generateStyleForColor(color, opacity, radius, label, showLabel, labelSize, labelColor, borderColor, borderSize, icon_path) {
         const [r, g, b, a] = colorAsArray(color);
         const colorWithOpacity = [r, g, b, opacity / 100];
         const textStyle = showLabel 
@@ -321,16 +327,46 @@ class OMSMapBubbleComponent extends OMSOlMap {
             width: borderSize
         }) : null;
 
-        return new Style({
-            image: new Circle({
-                fill: new Fill({
-                    color: colorWithOpacity
-                }),
-                stroke: strokeStyle,
-                radius: radius
+        const circeStyle = new Circle({
+            fill: new Fill({
+                color: colorWithOpacity
             }),
-            text: textStyle
+            stroke: strokeStyle,
+            radius: radius
         });
+        return new Promise((resolve, reject) => {
+            if (icon_path) {
+                const img = document.createElement('img');
+                img.src = icon_path;
+                const size = radius * 2;
+                img.onload = () => {
+                    const imgStyle = new Icon({
+                        img,
+                        anchor: [img.width / 2, img.height / 2],
+                        anchorXUnits : 'pixels',
+                        anchorYUnits : 'pixels',
+                        imgSize: [img.width, img.height],
+                        size: [img.width, img.height],
+                        scale: size / img.width
+                    })
+                    resolve(new Style({
+                        image: imgStyle,
+                        text: textStyle
+                    }))
+                }
+                img.onerror = () => {
+                    resolve(new Style({
+                        image: circeStyle,
+                        text: textStyle
+                    }))
+                }
+            } else {
+                resolve(new Style({
+                    image: circeStyle,
+                    text: textStyle
+                }))
+            }
+        })
     }
 
     updateMarkers() {
@@ -345,7 +381,8 @@ class OMSMapBubbleComponent extends OMSOlMap {
             settings['omsmapbubble.label_font_size'],
             settings['omsmapbubble.label_color'],
             settings['omsmapbubble.icon_border_color'],
-            settings['omsmapbubble.icon_border_size']
+            settings['omsmapbubble.icon_border_size'],
+            settings['omsmapbubble.icon_path']
         ]
 
         if (geomColumnIndex === -1) {
@@ -372,9 +409,10 @@ class OMSMapBubbleComponent extends OMSOlMap {
                     const opacity = this.props.settings['omsmapbubble.opacity'];
                     
                     const iconRadius = this.getIconSizeForValue(rowValue);
-
-                    feature.setStyle(this.generateStyleForColor(color, opacity, iconRadius, label, ...params));
-                    feature.set('id', id);
+                    this.generateStyleForColor(color, opacity, iconRadius, label, ...params).then(style => {
+                        feature.setStyle(style);
+                        feature.set('id', id);
+                    })
                 }
             } else {
                 for (const feature of features) {
@@ -438,10 +476,17 @@ class OMSMapBubbleComponent extends OMSOlMap {
                     key={d}
                     style={{
                         minWidth: d, 
-                        minHeight: d, 
-                        backgroundColor: legend.color,
-                        border: `1px solid ${legend.borderColor}`
-                    }}/>    
+                        maxWidth: d,
+                        minHeight: d,
+                        maxHeight: d, 
+                        backgroundColor: legend.icon ? 'transparent' : legend.color,
+                        border: legend.icon ? 'none' : `1px solid ${legend.borderColor}`
+                    }}>
+                        {legend.icon && <img 
+                            src={legend.icon}
+                            style={{width: '100%', height: '100%'}}
+                        />}
+                    </div>    
             })}
             <div>{legend.max}</div>
         </div>

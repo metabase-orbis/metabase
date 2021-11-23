@@ -1,6 +1,7 @@
 :local .distinctWrapper {
   display: flex;
   align-items: flex-start;
+  flex-direction: column;
   margin: 3px 0;
 }
 
@@ -31,4 +32,17 @@
   flex-grow: 1;
   display: flex;
   justify-content: flex-end;
+}
+
+:local .distinctNameWrapper {
+  display: flex;
+}
+
+:local .distinctOptionsWrapper {
+  display: flex;
+}
+
+:local .distinctRadio {
+  display: flex;
+  align-items: center;
 }

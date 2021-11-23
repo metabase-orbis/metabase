@@ -2,7 +2,7 @@
 import * as React from 'react';
 import _ from "underscore";
 
-import { Fill, Stroke, Circle, Style, Text } from 'ol/style';
+import { Fill, Stroke, Circle, Style, Text, Icon } from 'ol/style';
 import Feature from 'ol/Feature';
 import PointGeom from 'ol/geom/Point';
 import { fromLonLat } from 'ol/proj';
@@ -64,6 +64,11 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             title: 'Размер иконки',
             widget: "number",
             default: 12,
+        },
+        'olmap.icon_path': {
+            section: 'Иконка',
+            title: 'Путь к иконке',
+            widget: 'input',
         },
         'olmap.show_label': {
             section: 'Подпись',
@@ -140,7 +145,6 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         if (baseMap !== prevBaseMap) {
             this.setState({baseMapId: baseMap})
         }
-        console.log(this.props.settings);
     }
 
     getMapParams() {
@@ -190,21 +194,54 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
                     width: 0.5
                 }),
             }) : null;
-            f.setStyle([
-                new Style({
-                    image: new Circle({
-                        fill: new Fill({
-                            color: settings['olmap.icon_color']
-                        }),
-                        stroke: new Stroke({
-                            color: settings['olmap.icon_border_color'],
-                            width: settings['olmap.icon_border_size']
-                        }),
-                        radius: settings['olmap.icon_size']
-                    }),
-                    text: textStyle
-                })
-            ])
+
+            const circleStyle = new Circle({
+                fill: new Fill({
+                    color: settings['olmap.icon_color']
+                }),
+                stroke: new Stroke({
+                    color: settings['olmap.icon_border_color'],
+                    width: settings['olmap.icon_border_size']
+                }),
+                radius: settings['olmap.icon_size']
+            })
+            if (settings['olmap.icon_path']) {
+                const img = document.createElement('img');
+                img.src = settings['olmap.icon_path'];
+                img.onload = () => {
+                    const imgStyle = new Icon({
+                        img,
+                        anchor: [img.width / 2, img.height / 2],
+                        anchorXUnits : 'pixels',
+                        anchorYUnits : 'pixels',
+                        imgSize: [img.width, img.height],
+                        size: [img.width, img.height],
+                        scale: settings['olmap.icon_size'] * 2 / img.width
+                    })
+                    f.setStyle([
+                        new Style({
+                            image: imgStyle,
+                            text: textStyle
+                        })
+                    ])
+                }
+                img.onerror = () => {
+                    f.setStyle([
+                        new Style({
+                            image: circleStyle,
+                            text: textStyle
+                        })
+                    ])
+                }
+                
+            } else {
+                f.setStyle([
+                    new Style({
+                        image: circleStyle,
+                        text: textStyle
+                    })
+                ])
+            }
         })
     }
 

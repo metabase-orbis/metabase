@@ -13,7 +13,13 @@ export type TCategoriesSettings = {
     savedColors: {
         [value: string]: string;
     },
-    uncheckedValues: (string | number)[]
+    uncheckedValues: (string | number)[];
+    showIcons: {
+        [value: string]: boolean;
+    };
+    iconsPath: {
+        [value: string]: string;
+    }
 };
 
 export interface IUniqueValue {
@@ -36,12 +42,12 @@ export class OMSCategoryClassesSettingsComponent extends React.Component<IOMSCat
     }
 
     onColumnChange = ({ target }) => {
-        // console.log(target.value);
-        console.log(`[onColumnChange]: ${target.value}`);
         this.props.onChange({
             column: target.value,
             savedColors: {},
-            uncheckedValues: []
+            uncheckedValues: [],
+            showIcons: {},
+            iconsPath: {}
         });
     };
 
@@ -80,13 +86,41 @@ export class OMSCategoryClassesSettingsComponent extends React.Component<IOMSCat
         })
     }
 
+    onShowIconChange = (show, distinct, index) => {
+        const currentSettings = this.props.value || {};
+        const {
+            showIcons = {}
+        } = currentSettings;
+        const newShowIcons = {...showIcons};
+
+        newShowIcons[distinct.value] = show;
+        this.props.onChange({
+            ...currentSettings,
+            showIcons: newShowIcons
+        });
+    }
+
+    onChangeIconPath = (path, distinct, index) => {
+        const currentSettings = this.props.value || {};
+        const {
+            iconsPath = {}
+        } = currentSettings;
+        const newIconsPath = {...iconsPath};
+        newIconsPath[distinct.value] = path;
+        this.props.onChange({
+            ...currentSettings,
+            iconsPath: newIconsPath
+        });
+    }
+
     renderDistinct = (distinct, index) => {
         const currentSettings = this.props.value || {};
         const {
             savedColors = {},
-            uncheckedValues = []
+            uncheckedValues = [],
+            showIcons = {},
+            iconsPath = {}
         } = currentSettings;
-
         let color = this.props.rainbow[index];
         
         if (distinct.value in savedColors) {
@@ -100,11 +134,19 @@ export class OMSCategoryClassesSettingsComponent extends React.Component<IOMSCat
                 count={distinct.count}
                 value={distinct.value}
                 color={color}
+                showIcon={showIcons[distinct.value]}
+                iconPath={iconsPath[distinct.value]}
                 onColorChange={(color) => {
                     this.onColorChange(color, distinct, index);
                 }}
                 onCheckedChange={(checked) => {
                     this.onCheckedChange(checked, distinct, index);
+                }}
+                onShowIconChange={(show) => {
+                    this.onShowIconChange(show, distinct, index);
+                }}
+                onChangeIconPath={(path) => {
+                    this.onChangeIconPath(path, distinct, index)
                 }}
             />
 
@@ -115,7 +157,6 @@ export class OMSCategoryClassesSettingsComponent extends React.Component<IOMSCat
         const {
             column = ''
         } = this.props.value || {};
-
         return (
             <div>
                 <Select

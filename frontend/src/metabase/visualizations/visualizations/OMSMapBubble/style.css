@@ -11,4 +11,7 @@
 :local .omsMapBubblesLegendItem {
   border-radius: 50%;
   margin: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
