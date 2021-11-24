@@ -2,6 +2,19 @@
   background-color: white;
 }
 
+.EmbedFrame-header.mobile-embed-frame {
+  flex-direction: column;
+  padding: 5px;
+}
+
+.mobile-filters-wrapper {
+  margin-left: unset;
+}
+
+.mobile-filters-wrapper > div {
+  justify-content: center;
+}
+
 .EmbedFrame-header,
 .EmbedFrame-footer {
   color: var(--color-text-dark);

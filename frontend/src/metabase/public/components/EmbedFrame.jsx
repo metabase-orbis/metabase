@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router";
+import { isMobileOnly } from 'react-device-detect';
 
 import { IFRAMED, initializeIframeResizer } from "metabase/lib/dom";
 import { parseHashOptions } from "metabase/lib/browser";
@@ -48,6 +49,7 @@ export default class EmbedFrame extends Component {
   state: State = {
     innerScroll: true,
   };
+  isIframe: boolean = window !== window.top;
 
   UNSAFE_componentWillMount() {
     initializeIframeResizer(() => this.setState({ innerScroll: false }));
@@ -90,12 +92,12 @@ export default class EmbedFrame extends Component {
           })}
         >
           {name || (parameters && parameters.length > 0) ? (
-            <div className="EmbedFrame-header flex align-center p1 sm-p2 lg-p3">
-              {name && (
+            <div className={cx("EmbedFrame-header flex align-center p1 sm-p2 lg-p3", {'mobile-embed-frame': isMobileOnly})}>
+              {name && !this.isIframe && (
                 <TitleAndDescription title={name} description={description} />
               )}
               {parameters && parameters.length > 0 ? (
-                <div className="flex ml-auto">
+                <div className={cx("flex ml-auto", {"mobile-filters-wrapper": isMobileOnly})}>
                   <Parameters
                     dashboard={this.props.dashboard}
                     parameters={parameters.map(p => ({
