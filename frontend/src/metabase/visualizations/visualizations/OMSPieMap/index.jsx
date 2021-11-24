@@ -47,7 +47,7 @@ import Icon from "metabase/components/Icon";
  */
 class OMSPieMapComponent extends OMSOlMap {
 
-    static uiName = "OMS Круговые диаграммы";
+    static uiName = "ORBISmap Круговые диаграммы";
     static identifier = "omsmappie";
     static iconName = "location";
 

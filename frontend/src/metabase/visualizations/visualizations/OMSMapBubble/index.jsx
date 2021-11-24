@@ -44,7 +44,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
 
     geoStats;
 
-    static uiName = "OMS Пузырьковые диаграммы";
+    static uiName = "ORBISmap Пузырьковые диаграммы";
     static identifier = "omsmapbubble";
     static iconName = "location";
 

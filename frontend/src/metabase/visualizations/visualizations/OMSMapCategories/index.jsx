@@ -102,7 +102,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         return true;
     }
 
-    static uiName = "OMS Категории";
+    static uiName = "ORBISmap Категории";
     static identifier = "olmapcategories";
     static iconName = "location";
 

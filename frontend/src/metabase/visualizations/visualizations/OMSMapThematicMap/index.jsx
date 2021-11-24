@@ -45,7 +45,7 @@ const Algorithm = Object.freeze({
  */
 class OMSMapThematicMapComponent extends OMSOlMap {
 
-    static uiName = "OMS Тематическая карта";
+    static uiName = "ORBISmap Тематическая карта";
     static identifier = "olmapthematicmap";
     static iconName = "location";
 
