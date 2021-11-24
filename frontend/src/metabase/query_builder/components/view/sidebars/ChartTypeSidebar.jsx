@@ -14,14 +14,18 @@ import visualizations from "metabase/visualizations";
 const FIXED_LAYOUT = [
   ["line", "bar", "combo", "area", "row", "waterfall"],
   ["scatter", "pie", "funnel", "smartscalar", "progress", "gauge"],
-  ["scalar", "table", "pivot", "map"],
+  // ["scalar", "table", "pivot", "map"],
+  ["scalar", "table", "pivot"],
 ];
 
 const OMS_LAYOUT = [
-    ["olmap", "omsmapbubble", "olmapcategories", "olmapthematicmap", "omsmappie"]
+    // ["olmap", "omsmapbubble", "olmapcategories", "olmapthematicmap", "omsmappie"]
+    ["omsmapbubble", "olmapcategories", "olmapthematicmap", "omsmappie"]
 ]
 
 const FIXED_TYPES = new Set(_.union(_.flatten(FIXED_LAYOUT), _.flatten(OMS_LAYOUT)));
+
+const EXCLUDE_TYPES = ["map", "olmap"];
 
 const ChartTypeSidebar = ({
   question,
@@ -35,7 +39,7 @@ const ChartTypeSidebar = ({
   const other = Array.from(visualizations)
     .filter(
       ([type, visualization]) =>
-        !visualization.hidden && !FIXED_TYPES.has(type),
+        !visualization.hidden && !FIXED_TYPES.has(type) && !EXCLUDE_TYPES.includes(type),
     )
     .map(([type]) => type);
   const otherGrouped = Object.values(
@@ -43,7 +47,6 @@ const ChartTypeSidebar = ({
   );
 
   const layout = [...FIXED_LAYOUT, ...OMS_LAYOUT, ...otherGrouped];
-
   return (
     <SidebarContent
       className="full-height px1"
