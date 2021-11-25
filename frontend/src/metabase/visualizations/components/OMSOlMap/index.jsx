@@ -14,7 +14,7 @@ import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSIn
 import { getConfigFromOMSMap } from 'metabase/services';
 import Select, { Option } from "metabase/components/Select";
 import type { SettingDef } from 'metabase/visualizations/lib/settings';
-
+import { columnSettings } from "metabase/visualizations/lib/settings/column";
 import Icon from "metabase/components/Icon";
 
 import css from './style.css';
@@ -142,7 +142,8 @@ class OMSOlMapComponent extends React.Component {
                     }
                     return defautValue || defaultBaseMapsConfig[0].id;
                 }
-            }
+            },
+            ...columnSettings({ hidden: true })
         }
     }
 
