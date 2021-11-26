@@ -201,7 +201,8 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         const uniqueValues = getUniqueValues(series[0].data.rows, getColumnIndexByName(series[0].data.cols, rainbowSettings.column));
         const lRows = uniqueValues.map((v, i) => {
             let color = this.savedColors[v.value] || this.rainbow[i] || '#000000';
-            let icon = rainbowSettings.showIcons[v.value] ? rainbowSettings.iconsPath[v.value] : null;
+            const showIcons = (rainbowSettings.iconsPath && rainbowSettings.showIcons) ? rainbowSettings.showIcons : {};
+            let icon = showIcons[v.value] ? rainbowSettings.iconsPath[v.value] : null;
             return {
                 value: v.value,
                 color,
