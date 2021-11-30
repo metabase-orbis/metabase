@@ -314,8 +314,10 @@
   .dc-chart .x-axis-label,
   .dc-chart .y-axis-label {
     fill: var(--color-text-dark);
-  }
-  
+  } 
+}
+
+@media print and (max-width: 768px) {
   .DashboardGrid {
     height: auto!important;
   }
@@ -323,7 +325,8 @@
     position: relative !important;
     page-break-inside: avoid;
     transform: none!important;
-    width: auto!important
+    width: auto!important;
+    margin-bottom: 10px;
   }
 }
 

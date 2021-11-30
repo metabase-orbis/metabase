@@ -51,3 +51,16 @@
 .Theme--night.EmbedFrame .enable-dots .dc-tooltip circle.dot {
   fill: currentColor;
 }
+
+@media print {
+  .EmbedFrame-header {
+    flex-direction: column;
+  }
+  .EmbedFrame-header > div.ml-auto {
+    margin-left: unset;
+  }
+
+  .EmbedFrame-header > div.ml-auto > div.mt1 {
+    justify-content: center;
+  }
+}
