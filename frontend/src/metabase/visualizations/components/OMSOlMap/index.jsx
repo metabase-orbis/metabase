@@ -58,7 +58,7 @@ export const requestBaseMaps = (mapUrl, onChange) => {
             onChange({
                 mapUrl,
                 googleMapsApiKey: config.google_maps_api_key,
-                baseMaps: config.publication.base_maps
+                baseMaps: config.publication.base_maps.filter(bm => bm.value !== 'cadastre')
             });
         } catch(e) {
             console.warn(e);
@@ -682,16 +682,21 @@ class OMSOlMapComponent extends React.Component {
     renderBaseMapSwitcher() {
         const { baseMapId } = this.state;
         const { baseMaps } = this.getBaseMaps();
+        const options = [];
+        baseMaps.forEach(bm => {
+            if (bm.value !== 'cadastre') {
+                options.push(<Option 
+                    key={bm.id} 
+                    name={bm.name} 
+                    value={bm.id}>
+                    {bm.name}
+                </Option>)
+            }
+        })
         return <div className={css.omsMapBaseMaps}>
             <Select value={baseMapId}
                     onChange={e => this.setState({baseMapId: e.target.value})}>
-                    {baseMaps.map(bm => 
-                    <Option 
-                        key={bm.id} 
-                        name={bm.name} 
-                        value={bm.id}>
-                        {bm.name}
-                    </Option>)}
+                    {options}
             </Select>
         </div>  
     }
