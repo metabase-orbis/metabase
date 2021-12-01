@@ -180,6 +180,7 @@ class OMSOlMapComponent extends React.Component {
         this.gooSyncCenter = this.gooSyncCenter.bind(this);
         this.gooSyncSize = this.gooSyncSize.bind(this);
         this.gooSyncZoom = this.gooSyncZoom.bind(this);
+        this.updateMapState = this.updateMapState.bind(this);
     }
 
     componentDidMount() {
@@ -740,6 +741,9 @@ class OMSOlMapComponent extends React.Component {
                 ref={el => this._mapMountEl = el}
                 onMouseLeave={() => onHoverChange && onHoverChange(null)}
             >
+                <div className={cx('ol-control', css.homeControl)}>
+                    <button onClick={this.updateMapState}><img src="app/assets/img/home.svg" /></button>
+                </div>
                 <div className={css.yandexBase} ref={this._yaContainer}></div>
                 <div className={css.googleBase} ref={this._gooContainer}></div>
                 {this.renderBaseMapSwitcher()}
