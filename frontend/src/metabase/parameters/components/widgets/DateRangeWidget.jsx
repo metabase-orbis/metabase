@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-
+import MetabaseSettings from "metabase/lib/settings";
 import Calendar from "metabase/components/Calendar";
 import moment from "moment";
 
@@ -28,10 +28,11 @@ export default class DateRangeWidget extends Component {
 
   static format = value => {
     const { start, end } = parseDateRangeValue(value);
+    const formatDate = MetabaseSettings.get('site-locale') === 'ru' ? "DD.MM.YYYY" : "MMMM D, YYYY";
     return start && end
-      ? moment(start).format("MMMM D, YYYY") +
+      ? moment(start).format(formatDate) +
           " - " +
-          moment(end).format("MMMM D, YYYY")
+          moment(end).format(formatDate)
       : "";
   };
 

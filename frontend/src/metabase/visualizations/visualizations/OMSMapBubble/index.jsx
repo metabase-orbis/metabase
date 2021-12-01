@@ -56,7 +56,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
         const selectedColumnIndex = getColumnIndexByName(data.cols, settings['omsmapbubble.column']);
         const uniqValues = getUniqueValues(data.rows, selectedColumnIndex);
         if (uniqValues.length <= settings['omsmapbubble.classes_num']) {
-            throw new Error( t`The number of classes should not exceed the number of unique values.`);
+            throw new Error( t`Количество классов не должно превышать количество уникальных значений`);
         }
     }
 

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import MetabaseSettings from "metabase/lib/settings";
 
 import "./Calendar.css";
 
@@ -15,6 +16,7 @@ export default class Calendar extends Component {
     this.state = {
       current: moment(props.initial || undefined),
     };
+    moment.locale(MetabaseSettings.get('site-locale'))
   }
 
   static propTypes = {
@@ -110,7 +112,9 @@ export default class Calendar extends Component {
   }
 
   renderDayNames() {
-    const names = [t`Su`, t`Mo`, t`Tu`, t`We`, t`Th`, t`Fr`, t`Sa`];
+    const names = MetabaseSettings.get('site-locale') === 'ru' 
+    ? [t`Mo`, t`Tu`, t`We`, t`Th`, t`Fr`, t`Sa`, t`Su`] 
+    : [t`Su`, t`Mo`, t`Tu`, t`We`, t`Th`, t`Fr`, t`Sa`];
     return (
       <div className="Calendar-day-names Calendar-week py1">
         {names.map(name => (
@@ -124,13 +128,13 @@ export default class Calendar extends Component {
 
   renderWeeks(current) {
     const weeks = [];
+    const day = MetabaseSettings.get('site-locale') === 'ru' ? 'Monday' : 'Sunday';
     const date = moment(current)
       .startOf("month")
-      .day("Sunday");
+      .day(day);
     let done = false;
     let monthIndex = date.month();
     let count = 0;
-
     while (!done) {
       weeks.push(
         <Week

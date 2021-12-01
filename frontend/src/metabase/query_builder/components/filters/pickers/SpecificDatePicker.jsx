@@ -7,6 +7,7 @@ import InputBlurChange from "metabase/components/InputBlurChange";
 import Icon from "metabase/components/Icon";
 import ExpandingContent from "metabase/components/ExpandingContent";
 import HoursMinutesInput from "./HoursMinutesInput";
+import MetabaseSettings from "metabase/lib/settings";
 
 import moment from "moment";
 import cx from "classnames";
@@ -69,7 +70,8 @@ export default class SpecificDatePicker extends Component {
   render() {
     const { value, calendar, hideTimeSelectors, className } = this.props;
     const { showCalendar } = this.state;
-
+    const formatDate = MetabaseSettings.get('site-locale') === 'ru' 
+    ? 'DD.MM.YYYY' : 'MM/DD/YYYY'
     let date, hours, minutes;
     if (moment(value, DATE_TIME_FORMAT, true).isValid()) {
       date = moment(value, DATE_TIME_FORMAT, true);
@@ -84,14 +86,14 @@ export default class SpecificDatePicker extends Component {
       <div className={className}>
         <div className="mb2 full bordered rounded flex align-center">
           <InputBlurChange
-            placeholder={moment().format("MM/DD/YYYY")}
+            placeholder={moment().format(formatDate)}
             className="borderless full p1 h3"
             style={{
               outline: "none",
             }}
-            value={date ? date.format("MM/DD/YYYY") : ""}
+            value={date ? date.format(formatDate) : ""}
             onBlurChange={({ target: { value } }) => {
-              const date = moment(value, "MM/DD/YYYY");
+              const date = moment(value, formatDate);
               if (date.isValid()) {
                 this.onChange(date, hours, minutes);
               } else {
