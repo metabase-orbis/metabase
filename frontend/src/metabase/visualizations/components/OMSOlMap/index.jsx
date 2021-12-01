@@ -8,6 +8,7 @@ import View from 'ol/View';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { transform, toLonLat } from 'ol/proj';
+import { defaults as defaultInteractions } from 'ol/interaction';
 import cx from 'classnames';
 import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
@@ -195,6 +196,9 @@ class OMSOlMapComponent extends React.Component {
                 center: trCenter,
                 zoom: zoom || 2,
             }),
+            interactions: defaultInteractions({
+                mouseWheelZoom: !this.props.isDashboard
+            })
         });
         this._map.on('moveend', () => {
             const zoom = Math.round(this._map.getView().getZoom());
