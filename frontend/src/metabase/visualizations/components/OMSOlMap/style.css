@@ -76,3 +76,7 @@
 :local .homeControl > button > img {
   width: 20px;
 }
+
+:local .mobileControl > button {
+  font-size: 1.5em;
+}

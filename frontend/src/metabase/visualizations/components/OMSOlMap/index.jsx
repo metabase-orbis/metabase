@@ -741,7 +741,7 @@ class OMSOlMapComponent extends React.Component {
                 ref={el => this._mapMountEl = el}
                 onMouseLeave={() => onHoverChange && onHoverChange(null)}
             >
-                <div className={cx('ol-control', css.homeControl)}>
+                <div className={cx('ol-control', css.homeControl, {[css.mobileControl]: isMobile})}>
                     <button onClick={this.updateMapState}><img src="app/assets/img/home.svg" /></button>
                 </div>
                 <div className={css.yandexBase} ref={this._yaContainer}></div>

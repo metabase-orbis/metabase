@@ -1,9 +1,10 @@
 import type { DashCard } from "metabase-types/types/Dashboard";
+import { isMobile } from "react-device-detect";
 
 export const GRID_WIDTH = 18;
 export const GRID_ASPECT_RATIO = 4 / 3;
 
-const MOBILE_BREAKPOINT = 752;
+const MOBILE_BREAKPOINT = isMobile ? 1670 : 752;
 
 export const GRID_BREAKPOINTS = {
   desktop: MOBILE_BREAKPOINT + 1,
