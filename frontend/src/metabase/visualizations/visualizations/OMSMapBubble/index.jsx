@@ -23,7 +23,7 @@ import { isNotGeomColumn, isGeomColumn, isIdColumn } from 'metabase/visualizatio
 import { getUniqueValues, getValues } from 'metabase/visualizations/lib/oms/get-values';
 import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column-index';
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
-import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
+import { OMSOlMap, defaultMapPositionConfig } from 'metabase/visualizations/components/OMSOlMap';
 
 import styles from './style.css';
 import { resolve } from 'bluebird';
@@ -130,6 +130,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
             title: 'Размер',
             widget: OMSNumberRange,
             default: [10, 50],
+            labels: ['от (px)', 'до (px)'],
             max: 100,
             min: 1
         },
@@ -185,17 +186,21 @@ class OMSMapBubbleComponent extends OMSOlMap {
         super.componentDidUpdate(prevProps, prevState);
         const sameSeries = isSameSeries(this.props.series, prevProps.series);
 
-        const mapParams = this.props.settings['omsmapbubble.mapParams'];
-        const prevMapParams = prevProps.settings['omsmapbubble.mapParams'];
-
         if (!sameSeries) {
             this.updateCategoryClasses();
             this.updateMarkers();
             this.updateLegend();
         }
-        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+
+        const mapParams = this.props.settings['omsmapbubble.mapParams'];
+        const prevMapParams = prevProps.settings['omsmapbubble.mapParams'];
+        const mapZoomRange = this.props.settings['omsbubble.zoom_range'];
+        const prevMapZoomRange = prevProps.settings['omsbubble.zoom_range'];
+        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
+            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
             this.updateMapState();
         }
+        
         const mapUrl = this.props.settings['omsmapbubble.base_maps_list'].mapUrl;
         const prevMapUrl = prevProps.settings['omsmapbubble.base_maps_list'].mapUrl;
         if (mapUrl !== prevMapUrl) {
@@ -211,6 +216,12 @@ class OMSMapBubbleComponent extends OMSOlMap {
 
     getMapParams() {
         return this.props.settings['omsmapbubble.mapParams'].map(n => Number(n));
+    }
+
+    getZoomRange() {
+        const { min_zoom, max_zoom } = defaultMapPositionConfig;
+        const zoomRange = this.props.settings['omsmapbubble.zoom_range'] || [min_zoom, max_zoom]
+        return zoomRange.map(n => Number(n));
     }
 
     getObjectValue(featureData) {

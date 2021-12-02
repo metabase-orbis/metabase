@@ -14,7 +14,8 @@ export const OMSNumberRange = ({
     value,
     onChange,
     min,
-    max
+    max,
+    labels = []
 }) => {
 
     const [fromValue, toValue] = value;
@@ -58,7 +59,7 @@ export const OMSNumberRange = ({
         <div className={css.omsInputNumberRange}>
             <div className={css.omsInputNumberRangeItem}>
                 <div className={css.omsInputNumberRangeItemLabel}>
-                    от (px)
+                    {labels[0] || 'от'}
                 </div>
                 <div className={css.omsInputNumberRangeItemComponent}>
                     <ChartSettingInputNumeric
@@ -70,7 +71,7 @@ export const OMSNumberRange = ({
 
             <div className={css.omsInputNumberRangeItem}>
                 <div className={css.omsInputNumberRangeItemLabel}>
-                    до (px)
+                    {labels[1] || 'до'}
                 </div>
                 <div className={css.omsInputNumberRangeItemComponent}>
                     <ChartSettingInputNumeric
@@ -87,5 +88,6 @@ OMSNumberRange.propTypes = {
     value: PropTypes.array,
     onChange: PropTypes.func,
     min: PropTypes.number,
-    max: PropTypes.number
+    max: PropTypes.number,
+    labels: PropTypes.array
 };

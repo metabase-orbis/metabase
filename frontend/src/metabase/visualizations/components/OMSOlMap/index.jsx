@@ -12,6 +12,7 @@ import { defaults as defaultInteractions } from 'ol/interaction';
 import cx from 'classnames';
 import { isSameSeries, getOlFeatureInfoFromSeries, getOlFeatureOnPixel } from "metabase/visualizations/lib/utils";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
+import { OMSNumberRange } from 'metabase/visualizations/components/settings/OMSNumberRange';
 import { getConfigFromOMSMap } from 'metabase/services';
 import Select, { Option } from "metabase/components/Select";
 import type { SettingDef } from 'metabase/visualizations/lib/settings';
@@ -19,6 +20,7 @@ import { columnSettings } from "metabase/visualizations/lib/settings/column";
 import Icon from "metabase/components/Icon";
 
 import css from './style.css';
+import { config } from 'ace-builds';
 
 const defaultSources = {
     0: new OSM()
@@ -37,14 +39,23 @@ export const defaultBaseMapsConfig =  [{container_id: 0,
     vector: false
 }];
 
+export const defaultMapPositionConfig = {
+    center: [0, 0],
+    default_layer_zoom: 0,
+    max_zoom: 20,
+    min_zoom: 0,
+    zoom: 8
+}
+
 
 let requestTimeout = 0;
-export const requestBaseMaps = (mapUrl, onChange) => {
+export const requestConfig = (mapUrl, onChange) => {
     clearTimeout(requestTimeout);
     const defaultConfig = {
         mapUrl,
         googleMapsApiKey: null,
-        baseMaps: defaultBaseMapsConfig
+        baseMaps: defaultBaseMapsConfig,
+        mapPosition: defaultMapPositionConfig
     };
     requestTimeout = setTimeout(async () => {
         if (!mapUrl) {
@@ -59,7 +70,11 @@ export const requestBaseMaps = (mapUrl, onChange) => {
             onChange({
                 mapUrl,
                 googleMapsApiKey: config.google_maps_api_key,
-                baseMaps: config.publication.base_maps.filter(bm => bm.value !== 'cadastre')
+                baseMaps: config.publication.base_maps.filter(bm => bm.value !== 'cadastre'),
+                mapPosition: {
+                    ...config.publication.map_position, 
+                    center: transform(config.publication.map_position.center, 'EPSG:3857', 'EPSG:4326')
+                }
             });
         } catch(e) {
             console.warn(e);
@@ -86,49 +101,74 @@ class OMSOlMapComponent extends React.Component {
      * @type {import('ol/Map')}
      */
 
-
-    static getSettings(identifier): { [k: string]: SettingDef; } {
+    static getSettings(id): { [k: string]: SettingDef; } {
+        const configId = `${id}.base_maps_list`;
         return {
-            [`${identifier}.mapParams`]: {
-                section: 'Карта',
-                title: 'Параметры карты',
-                widget: OMSInputGroup,
-                names: ['Масштаб', 'Координаты центра'],
-                default: [2, 0, 0],
-                types: ['number', 'number', 'number'],
-                setValueTitle: 'Текущая позиция карты'
-            },
-            [`${identifier}.map_url`]: {
+            [`${id}.map_url`]: {
                 section: 'Карта',
                 title: 'Ссылка на карту OMS',
                 widget: 'input',
                 default: ''
             },
-            [`${identifier}.base_maps_list`]: {
+            [`${id}.zoom_range`]: {
+                section: 'Карта',
+                title: 'Допустимые масштабы',
+                widget: OMSNumberRange,
+                labels: ['мин', 'макс'],
+                hidden: true,
+                getDefault: ([{data, card}], computed) => {
+                    const configMap = card.visualization_settings[configId];
+                    if (configMap && computed[`${id}.map_url`] === configMap.mapUrl && configMap.mapPosition) {
+                        return [configMap.mapPosition.min_zoom, configMap.mapPosition.max_zoom];
+                    }
+                    return [0, 25];
+                }
+            },
+            [`${id}.mapParams`]: {
+                section: 'Карта',
+                title: 'Позиция карты',
+                widget: OMSInputGroup,
+                names: ['Масштаб', 'Координаты центра'],
+                types: ['number', 'number', 'number'],
+                setValueTitle: 'Текущая позиция карты',
+                default: [2, 0, 0],
+                getProps: function([{data, card}], computed, onChange) {
+                    const configMap = card.visualization_settings[configId];
+                    if (!configMap || computed[`${id}.map_url`] !== configMap.mapUrl) {
+                        this.needChange = true;
+                    } else if (this.needChange) {
+                        const mapParams = computed[configId];
+                        onChange([mapParams.mapPosition.zoom, ...mapParams.mapPosition.center]);
+                        this.needChange = false;
+                    }
+                    return {}
+                },
+            },
+            [configId]: {
                 getProps: ([{data, card}], computed, onChange) => {
-                    const mapUrl = computed[`${identifier}.map_url`];
-                    const value = computed[`${identifier}.base_maps_list`];
+                    const mapUrl = computed[`${id}.map_url`];
+                    const value = computed[configId];
                     const oldUrl = value ? value.mapUrl : null;
                     if (mapUrl && mapUrl !== oldUrl) {
-                        requestBaseMaps(mapUrl, onChange);
+                        requestConfig(mapUrl, onChange);
                     }
                     return  {}
                 },
                 hidden: true,
                 getDefault: ([{data, card}], computed) => ({
-                    mapUrl: computed[`${identifier}.base_maps_list`] ? computed[`${identifier}.base_maps_list`].mapUrl : null, 
+                    mapUrl: computed[configId] ? computed[configId].mapUrl : null, 
                     googleMapsApiKey: null,
                     baseMaps: defaultBaseMapsConfig
                 })
             },
-            [`${identifier}.default_base_map`]: {
+            [`${id}.default_base_map`]: {
                 section: 'Карта',
                 title: 'Базовая карта по умолчанию',
                 widget: 'select',
                 getProps: ([{data, card}], computed) => {
                     const options = [];
-                    if (computed[`${identifier}.base_maps_list`]) {
-                        computed[`${identifier}.base_maps_list`].baseMaps.forEach(c => options.push({value: c.id, name: c.name}))
+                    if (computed[configId]) {
+                        computed[configId].baseMaps.forEach(c => options.push({value: c.id, name: c.name}))
                     } else {
                         defaultBaseMapsConfig.forEach(c => options.push({value: c.id, name: c.name}))
                     }
@@ -138,8 +178,8 @@ class OMSOlMapComponent extends React.Component {
                 },
                 getDefault: ([{data, card}], computed) => {
                     let defautValue = '';
-                    if (computed[`${identifier}.base_maps_list`]) {
-                        defautValue = computed[`${identifier}.base_maps_list`].baseMaps[0].id
+                    if (computed[configId]) {
+                        defautValue = computed[configId].baseMaps[0].id
                     }
                     return defautValue || defaultBaseMapsConfig[0].id;
                 }
@@ -186,6 +226,9 @@ class OMSOlMapComponent extends React.Component {
     componentDidMount() {
         const mapParams = this.getMapParams().map(n => Number(n));
         const [zoom, ...center] = mapParams;
+        const { min_zoom, max_zoom } = defaultMapPositionConfig;
+        const zoomRange = (this.getZoomRange() || []).map(n => Number(n));
+        
         const trCenter = transform(center, 'EPSG:4326', 'EPSG:3857');
         this._map = new OLMap({
             layers: [
@@ -196,6 +239,8 @@ class OMSOlMapComponent extends React.Component {
             view: new View({
                 center: trCenter,
                 zoom: zoom || 2,
+                minZoom: zoomRange[0] || min_zoom,
+                maxZoom: zoomRange[1] || max_zoom
             }),
             interactions: defaultInteractions({
                 mouseWheelZoom: !this.props.isDashboard
@@ -239,6 +284,11 @@ class OMSOlMapComponent extends React.Component {
 
     getMapParams() {
         return [2, 0, 0]
+    }
+
+    getZoomRange() {
+        const { min_zoom, max_zoom } = defaultMapPositionConfig;
+        return [ min_zoom, max_zoom ];
     }
 
     getObjectValue(featureData) {
@@ -682,6 +732,11 @@ class OMSOlMapComponent extends React.Component {
         const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
         this._map.getView().setZoom(mapParams[0]);
         this._map.getView().setCenter(center);
+
+        const { min_zoom, max_zoom } = defaultMapPositionConfig;
+        const zoomRange = this.getZoomRange() || [];
+        this._map.getView().setMinZoom(zoomRange[0] || min_zoom);
+        this._map.getView().setMaxZoom(zoomRange[1] || max_zoom);
     }
 
     renderBaseMapSwitcher() {

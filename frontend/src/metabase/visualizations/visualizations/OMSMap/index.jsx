@@ -17,7 +17,7 @@ import { isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import { isSameSeries } from "metabase/visualizations/lib/utils";
 import { fieldSetting } from "metabase/visualizations/lib/settings/utils";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
-import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
+import { OMSOlMap, defaultMapPositionConfig } from 'metabase/visualizations/components/OMSOlMap';
 import styles from './style.css';
 
 import type { VisualizationProps } from "metabase-types/types/Visualization";
@@ -130,7 +130,11 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
         const mapParams = this.props.settings['olmap.mapParams'];
         const prevMapParams = prevProps.settings['olmap.mapParams'];
-        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+
+        const mapZoomRange = this.props.settings['olmap.zoom_range'];
+        const prevMapZoomRange = prevProps.settings['olmap.zoom_range'];
+        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
+            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
             this.updateMapState();
         }
 
@@ -149,6 +153,12 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
 
     getMapParams() {
         return this.props.settings['olmap.mapParams'].map(n => Number(n));
+    }
+
+    getZoomRange() {
+        const { min_zoom, max_zoom } = defaultMapPositionConfig;
+        const zoomRange = this.props.settings['olmap.zoom_range'] || [min_zoom, max_zoom]
+        return zoomRange.map(n => Number(n));
     }
 
     getObjectValue(featureData) {

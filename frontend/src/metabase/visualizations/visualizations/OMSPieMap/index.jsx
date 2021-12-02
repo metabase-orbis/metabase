@@ -31,7 +31,7 @@ import { OMSMapPieFields } from 'metabase/visualizations/components/settings/OMS
 import { generateColor } from 'metabase/visualizations/lib/oms/colors';
 import { isGeomColumn, isIdColumn } from 'metabase/visualizations/lib/oms/column-filters';
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
-import { OMSOlMap } from 'metabase/visualizations/components/OMSOlMap';
+import { OMSOlMap, defaultMapPositionConfig } from 'metabase/visualizations/components/OMSOlMap';
 import Icon from "metabase/components/Icon";
 
 /**
@@ -147,8 +147,10 @@ class OMSPieMapComponent extends OMSOlMap {
 
         const mapParams = this.props.settings['omsmappie.mapParams'];
         const prevMapParams = prevProps.settings['omsmappie.mapParams'];
-
-        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+        const mapZoomRange = this.props.settings['omsmappie.zoom_range'];
+        const prevMapZoomRange = prevProps.settings['omsmappie.zoom_range'];
+        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
+            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
             this.updateMapState();
         }
 
@@ -167,6 +169,12 @@ class OMSPieMapComponent extends OMSOlMap {
 
     getMapParams() {
         return this.props.settings['omsmappie.mapParams'].map(n => Number(n));
+    }
+
+    getZoomRange() {
+        const { min_zoom, max_zoom } = defaultMapPositionConfig;
+        const zoomRange = this.props.settings['omsmappie.zoom_range'] || [min_zoom, max_zoom]
+        return zoomRange.map(n => Number(n));
     }
 
     getMapUrl() {

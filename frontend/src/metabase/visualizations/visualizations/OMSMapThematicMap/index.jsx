@@ -24,7 +24,7 @@ import { getColumnIndexByName } from 'metabase/visualizations/lib/oms/get-column
 import geostats from 'metabase/visualizations/lib/oms/geostats';
 import { isNumeric } from "metabase/lib/schema_metadata";
 import { OMSInputGroup } from 'metabase/visualizations/components/settings/OMSInputGroup';
-import { OMSOlMap, defaultBaseMapsConfig, requestBaseMaps } from 'metabase/visualizations/components/OMSOlMap';
+import { OMSOlMap, defaultMapPositionConfig } from 'metabase/visualizations/components/OMSOlMap';
 
 const Algorithm = Object.freeze({
     EqInterval: 0,
@@ -195,8 +195,10 @@ class OMSMapThematicMapComponent extends OMSOlMap {
 
         const mapParams = this.props.settings['olmapthematicmap.mapParams'];
         const prevMapParams = prevProps.settings['olmapthematicmap.mapParams'];
-
-        if (JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) {
+        const mapZoomRange = this.props.settings['olmapthematicmap.zoom_range'];
+        const prevMapZoomRange = prevProps.settings['olmapthematicmap.zoom_range'];
+        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
+            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
             this.updateMapState();
         }
 
@@ -215,6 +217,12 @@ class OMSMapThematicMapComponent extends OMSOlMap {
 
     getMapParams() {
         return this.props.settings['olmapthematicmap.mapParams'].map(n => Number(n));
+    }
+
+    getZoomRange() {
+        const { min_zoom, max_zoom } = defaultMapPositionConfig;
+        const zoomRange = this.props.settings['olmapthematicmap.zoom_range'] || [min_zoom, max_zoom]
+        return zoomRange.map(n => Number(n));
     }
 
     getObjectValue(featureData) {

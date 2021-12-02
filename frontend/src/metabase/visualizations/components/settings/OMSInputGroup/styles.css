@@ -8,6 +8,7 @@
 
 :local .omsInputGroupButton {
     padding: 12px 20px;
+    margin-bottom: 0;
 }
 
 :local .omsInputGroupTitle {
