@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router";
-import { isMobileOnly } from 'react-device-detect';
+import { isMobile } from 'react-device-detect';
 
 import { IFRAMED, initializeIframeResizer } from "metabase/lib/dom";
 import { parseHashOptions } from "metabase/lib/browser";
@@ -92,12 +92,12 @@ export default class EmbedFrame extends Component {
           })}
         >
           {name || (parameters && parameters.length > 0) ? (
-            <div className={cx("EmbedFrame-header flex align-center p1 sm-p2 lg-p3", {'mobile-embed-frame': isMobileOnly})}>
+            <div className={cx("EmbedFrame-header flex align-center p1 sm-p2 lg-p3", {'mobile-embed-frame': isMobile})}>
               {name && !this.isIframe && (
                 <TitleAndDescription title={name} description={description} />
               )}
               {parameters && parameters.length > 0 ? (
-                <div className={cx("flex ml-auto", {"mobile-filters-wrapper": isMobileOnly})}>
+                <div className={cx("flex ml-auto", {"mobile-filters-wrapper": isMobile})}>
                   <Parameters
                     dashboard={this.props.dashboard}
                     parameters={parameters.map(p => ({
