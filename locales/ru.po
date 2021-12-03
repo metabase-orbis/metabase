@@ -2421,7 +2421,7 @@ msgstr "Как бы вы хотели обращаться к этой базе 
 #: frontend/src/metabase/setup/components/PreferencesStep.jsx:128
 #: frontend/src/metabase/setup/components/UserStep.jsx:93
 msgid "Next"
-msgstr "Дальше"
+msgstr "Следующие"
 
 #: frontend/src/metabase/components/ArchivedItem.jsx:51
 #: frontend/src/metabase/components/DeleteModalWithConfirm.jsx:80
@@ -3877,7 +3877,7 @@ msgstr "Меньше чем"
 #: frontend/src/metabase/query_builder/components/filters/pickers/DatePicker.jsx:301
 #: frontend/src/metabase/query_builder/components/filters/pickers/TimePicker.jsx:99
 msgid "Between"
-msgstr "Между"
+msgstr "В диапазоне дат"
 
 #: frontend/src/metabase/lib/schema_metadata.js:404
 #: frontend/src/metabase/lib/schema_metadata.js:418
@@ -3921,13 +3921,13 @@ msgstr "Заканчивается"
 #: frontend/src/metabase/query_builder/components/filters/pickers/DatePicker.jsx:280
 #: frontend/src/metabase/query_builder/components/filters/pickers/TimePicker.jsx:77
 msgid "Before"
-msgstr "До"
+msgstr "До выбранной даты"
 
 #: frontend/src/metabase/lib/schema_metadata.js:446
 #: frontend/src/metabase/query_builder/components/filters/pickers/DatePicker.jsx:287
 #: frontend/src/metabase/query_builder/components/filters/pickers/TimePicker.jsx:88
 msgid "After"
-msgstr "После"
+msgstr "После выбранной даты"
 
 #: frontend/src/metabase/lib/schema_metadata.js:464
 msgid "Inside"
@@ -5622,7 +5622,7 @@ msgstr "Элемент"
 
 #: frontend/src/metabase/query_builder/components/filters/pickers/DatePicker.jsx:239
 msgid "Previous"
-msgstr "Предыдущий"
+msgstr "Предыдущие"
 
 #: frontend/src/metabase/query_builder/components/filters/pickers/DatePicker.jsx:268
 msgid "Current"
@@ -5632,7 +5632,7 @@ msgstr "Текущий"
 #: frontend/src/metabase/visualizations/lib/settings/column.js:254
 #: frontend/src/metabase/visualizations/lib/settings/series.js:87
 msgid "On"
-msgstr "На"
+msgstr "В выбранную дату"
 
 #: frontend/src/metabase/query_builder/components/filters/pickers/NumberPicker.jsx:45
 msgid "Enter desired number"
@@ -6941,7 +6941,7 @@ msgstr "столбец"
 
 #: frontend/src/metabase/visualizations/lib/errors.js:21
 msgid "No dice. We have {0} data {1} to show and that's not enough for this visualization."
-msgstr "Не проканает. У нас {0} данных из {1} чтобы показать, и этого недостаточно для этой визуализации."
+msgstr "Недостаточно даннных для визуализации ({0} из {1})."
 
 #: frontend/src/metabase/visualizations/lib/errors.js:21
 msgid "point"
