@@ -215,16 +215,6 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         }
     }
 
-    getMapParams() {
-        return this.props.settings['olmapthematicmap.mapParams'].map(n => Number(n));
-    }
-
-    getZoomRange() {
-        const { min_zoom, max_zoom } = defaultMapPositionConfig;
-        const zoomRange = this.props.settings['olmapthematicmap.zoom_range'] || [min_zoom, max_zoom]
-        return zoomRange.map(n => Number(n));
-    }
-
     getObjectValue(featureData) {
         const { settings } = this.props;
         return featureData[settings['olmapthematicmap.column']];
@@ -234,19 +224,6 @@ class OMSMapThematicMapComponent extends OMSOlMap {
         const { series, settings } = this.props;
         return series[seriesIndex].data.cols.find(c => c.name === settings['olmapthematicmap.column'])
     }
-
-    getMapUrl() {
-        return this.props.settings['olmapthematicmap.map_url'];
-    }
-
-    getBaseMaps() {
-        return this.props.settings['olmapthematicmap.base_maps_list']
-    }
-
-    getDefaultBaseMap() {
-        return this.props.settings['olmapthematicmap.default_base_map']
-    }
-
 
     updateCategoryClasses() {
         const { cols, rows } = this.props.data;

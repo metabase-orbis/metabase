@@ -283,12 +283,15 @@ class OMSOlMapComponent extends React.Component {
     }
 
     getMapParams() {
-        return [2, 0, 0]
+        const { settings, card } = this.props;
+        return settings[`${card.display}.mapParams`].map(n => Number(n));
     }
 
     getZoomRange() {
+        const { settings, card } = this.props;
         const { min_zoom, max_zoom } = defaultMapPositionConfig;
-        return [ min_zoom, max_zoom ];
+        const zoomRange = settings[`${card.display}.zoom_range`] || [min_zoom, max_zoom]
+        return zoomRange.map(n => Number(n));
     }
 
     getObjectValue(featureData) {
@@ -346,19 +349,22 @@ class OMSOlMapComponent extends React.Component {
     }
 
     getMapUrl() {
-        return '';
+        const { settings, card } = this.props;
+        return settings[`${card.display}.map_url`]
     }
 
-    getBaseMaps() {
-        return { baseMaps: defaultBaseMapsConfig }
+    getMapConfig() {
+        const { settings, card } = this.props;
+        return settings[`${card.display}.base_maps_list`]
     }
 
     getDefaultBaseMap() {
-        return null;
+        const { settings, card } = this.props;
+        return settings[`${card.display}.default_base_map`]
     }
 
     setBaseMaps() {
-        const { baseMaps, googleMapsApiKey } = this.getBaseMaps();
+        const { baseMaps, googleMapsApiKey } = this.getMapConfig();
         const defaultSelected = this.getDefaultBaseMap();
         this.setBaseSources(baseMaps);
         this._googleMapsApiKey = googleMapsApiKey;
@@ -375,7 +381,7 @@ class OMSOlMapComponent extends React.Component {
 
     switchBaseMap() {
         const { baseMapId } = this.state;
-        const { baseMaps } = this.getBaseMaps();
+        const { baseMaps } = this.getMapConfig();
         const baseMap = baseMaps.find(bm => bm.id === baseMapId);
         this.hideYaMap();
         this.hideGooMap();
@@ -572,7 +578,7 @@ class OMSOlMapComponent extends React.Component {
     }
 
     initGooMap(layerType) {
-        const { baseMaps } = this.getBaseMaps();
+        const { baseMaps } = this.getMapConfig();
         const initPromise = new Promise((resolve, reject) => {
             if (window.google === undefined) {
                 const googleApi = document.createElement('script');
@@ -741,7 +747,7 @@ class OMSOlMapComponent extends React.Component {
 
     renderBaseMapSwitcher() {
         const { baseMapId } = this.state;
-        const { baseMaps } = this.getBaseMaps();
+        const { baseMaps } = this.getMapConfig();
         const options = [];
         baseMaps.forEach(bm => {
             if (bm.value !== 'cadastre') {

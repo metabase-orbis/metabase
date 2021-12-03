@@ -151,16 +151,6 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         }
     }
 
-    getMapParams() {
-        return this.props.settings['olmap.mapParams'].map(n => Number(n));
-    }
-
-    getZoomRange() {
-        const { min_zoom, max_zoom } = defaultMapPositionConfig;
-        const zoomRange = this.props.settings['olmap.zoom_range'] || [min_zoom, max_zoom]
-        return zoomRange.map(n => Number(n));
-    }
-
     getObjectValue(featureData) {
         return featureData['orbis_id'] || featureData['id'];
     }
@@ -175,18 +165,6 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             index++;
         }
         return column;
-    }
-
-    getMapUrl() {
-        return this.props.settings['olmap.map_url']
-    }
-
-    getBaseMaps() {
-        return this.props.settings['olmap.base_maps_list']
-    }
-
-    getDefaultBaseMap() {
-        return this.props.settings['olmap.default_base_map']
     }
 
     regenerateStyles() {

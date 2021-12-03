@@ -164,16 +164,6 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         }
     }
 
-    getMapParams() {
-        return this.props.settings['olmapcategories.mapParams'].map(n => Number(n));
-    }
-
-    getZoomRange() {
-        const { min_zoom, max_zoom } = defaultMapPositionConfig;
-        const zoomRange = this.props.settings['olmapcategories.zoom_range'] || [min_zoom, max_zoom]
-        return zoomRange.map(n => Number(n));
-    }
-
     getObjectValue(featureData) {
         const { settings } = this.props;
         return settings['olmapcategories.settings'] 
@@ -186,17 +176,6 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         return settings['olmapcategories.settings'] 
             ? series[seriesIndex].data.cols.find(c => c.name === settings['olmapcategories.settings'].column) 
             : null;
-    }
-
-    getMapUrl() {
-        return this.props.settings['olmapcategories.map_url'];
-    }
-    getBaseMaps() {
-        return this.props.settings['olmapcategories.base_maps_list']
-    }
-
-    getDefaultBaseMap() {
-        return this.props.settings['olmapcategories.default_base_map']
     }
 
     updateLegend() {
