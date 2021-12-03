@@ -386,7 +386,7 @@ msgstr "Еще нет описания стоблца"
 
 #: frontend/src/metabase/admin/datamodel/components/database/ColumnItem.jsx:127
 msgid "Select a field visibility"
-msgstr "Выберите видимость поля"
+msgstr "Выберите где будет отображаться поле"
 
 #: frontend/src/metabase/admin/datamodel/components/database/ColumnItem.jsx:187
 msgid "No special type"
@@ -443,7 +443,7 @@ msgstr "Текущая база данных:"
 
 #: frontend/src/metabase/admin/datamodel/components/database/MetadataHeader.jsx:73
 msgid "Show original schema"
-msgstr "Показать оригинальную схему"
+msgstr "Показать оригинальную схему данных"
 
 #: frontend/src/metabase/admin/datamodel/components/database/MetadataSchema.jsx:48
 msgid "Data Type"
@@ -455,7 +455,7 @@ msgstr "Дополнительная информация"
 
 #: frontend/src/metabase/admin/datamodel/components/database/MetadataSchemaList.jsx:47
 msgid "Find a schema"
-msgstr "Найти схему"
+msgstr "Найти схему данных"
 
 #: frontend/src/metabase/admin/datamodel/components/database/MetadataSchemaList.jsx:54
 msgid "{0} schema"
@@ -852,7 +852,7 @@ msgstr "Настройки"
 
 #: frontend/src/metabase/admin/datamodel/containers/TableSettingsApp.jsx:85
 msgid "Metabase can scan the values in this table to enable checkbox filters in dashboards and questions."
-msgstr "Metabase может сканировать значения в этом таблицы для того, чтобы построить выпадающие списки для фильтров дашбордов и запросов."
+msgstr "Metabase может сканировать значения этой таблицы для того, чтобы построить выпадающие списки для фильтров дашбордов и запросов."
 
 #: frontend/src/metabase/admin/datamodel/containers/TableSettingsApp.jsx:90
 msgid "Re-scan this table"
@@ -1690,7 +1690,7 @@ msgstr "Отключить эту ссылку?"
 
 #: frontend/src/metabase/admin/settings/components/widgets/PublicLinksListing.jsx:122
 msgid "They won't work anymore, and can't be restored, but you can create new links."
-msgstr "Они больше не работают и не могут быть восстановлены, но вы можете создать новые ссылки."
+msgstr "Ссылки больше не работают и не могут быть восстановлены, но вы можете создать новые ссылки."
 
 #: frontend/src/metabase/admin/settings/components/widgets/PublicLinksListing.jsx:149
 msgid "Public Dashboard Listing"
@@ -2008,7 +2008,7 @@ msgstr "Множитель Cache Time-To-Live (TTL)"
 
 #: frontend/src/metabase/admin/settings/selectors.js:386
 msgid "Max Cache Entry Size"
-msgstr "Максимальный объем записи в кеш"
+msgstr "Максимальный объем записи в кэш"
 
 #: frontend/src/metabase/alert/alert.js:60
 msgid "Your alert is all set up."
@@ -2062,11 +2062,11 @@ msgstr "Email, который вы используете с вашим Metabase
 
 #: frontend/src/metabase/auth/containers/ForgotPasswordApp.jsx:57
 msgid "Send password reset email"
-msgstr "Послать емаил для сброса пароля"
+msgstr "Послать email для сброса пароля"
 
 #: frontend/src/metabase/auth/containers/ForgotPasswordApp.jsx:66
 msgid "Check your email for instructions on how to reset your password."
-msgstr "Послать емаил с инструкцией как сбросить пароль."
+msgstr "Послать email с инструкцией как сбросить пароль."
 
 #: frontend/src/metabase/auth/containers/LoginApp.jsx:31
 msgid "Sign in to Metabase"
@@ -2095,7 +2095,7 @@ msgstr "запросить новое письмо с запросом на сб
 
 #: frontend/src/metabase/auth/containers/PasswordResetApp.jsx:74
 msgid "Whoops, that's an expired link"
-msgstr "Уууупс, кажется эта ссылку устарела."
+msgstr "Эта ссылка устарела."
 
 #: frontend/src/metabase/auth/containers/PasswordResetApp.jsx:125
 msgid "For security reasons, password reset links expire after a little while. If you still need\n"
@@ -4150,7 +4150,7 @@ msgstr "ZIP или Почтовый код"
 #: frontend/src/metabase/meta/Dashboard.js:94
 #: frontend/src/metabase/meta/Parameter.js:171
 msgid "ID"
-msgstr "ИД"
+msgstr "ID"
 
 #: frontend/src/metabase/meta/Dashboard.js:63
 #: frontend/src/metabase/modes/components/drill/PivotByTimeDrill.jsx:7
