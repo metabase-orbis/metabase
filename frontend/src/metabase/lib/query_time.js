@@ -1,6 +1,6 @@
 import moment from "moment";
 import inflection from "inflection";
-
+import MetabaseSettings from "metabase/lib/settings";
 import { formatDateTimeWithUnit } from "metabase/lib/formatting";
 import { parseTimestamp } from "metabase/lib/time";
 import { t, ngettext, msgid } from "ttag";
@@ -150,14 +150,15 @@ export function generateTimeIntervalDescription(n, unit) {
 }
 
 export function generateTimeValueDescription(value, bucketing) {
+  const isRuLocale = MetabaseSettings.get('site-locale') === 'ru';
   if (typeof value === "string") {
     const m = parseTimestamp(value, bucketing);
     if (bucketing) {
       return formatDateTimeWithUnit(value, bucketing);
     } else if (m.hours() || m.minutes()) {
-      return m.format("MMMM D, YYYY hh:mm a");
+      return m.format(isRuLocale ? "DD.MM.YYYY hh:mm a" : "MMMM D, YYYY hh:mm a");
     } else {
-      return m.format("MMMM D, YYYY");
+      return m.format(isRuLocale ? "DD.MM.YYYY" : "MMMM D, YYYY");
     }
   } else if (Array.isArray(value) && value[0] === "relative-datetime") {
     let n = value[1];

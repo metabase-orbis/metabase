@@ -16,7 +16,6 @@ export default class Calendar extends Component {
     this.state = {
       current: moment(props.initial || undefined),
     };
-    moment.locale(MetabaseSettings.get('site-locale'))
   }
 
   static propTypes = {

@@ -4,7 +4,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { t } from "ttag";
-
+import moment from "moment";
 import PopoverWithTrigger from "metabase/components/PopoverWithTrigger";
 import Icon from "metabase/components/Icon";
 import DateSingleWidget from "./widgets/DateSingleWidget";
@@ -15,6 +15,7 @@ import DateQuarterYearWidget from "./widgets/DateQuarterYearWidget";
 import DateAllOptionsWidget from "./widgets/DateAllOptionsWidget";
 import TextWidget from "./widgets/TextWidget";
 import ParameterFieldWidget from "./widgets/ParameterFieldWidget/ParameterFieldWidget";
+import MetabaseSettings from "metabase/lib/settings";
 
 import { fetchField, fetchFieldValues } from "metabase/redux/metadata";
 import {
@@ -101,6 +102,9 @@ export default class ParameterValueWidget extends Component {
 
     this.valuePopover = React.createRef();
     this.trigger = React.createRef();
+    if (MetabaseSettings.get('site-locale') === 'ru') {
+      moment.locale('ru');
+    }
   }
 
   componentDidUpdate(prevProps) {

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-
+import MetabaseSettings from "metabase/lib/settings";
 import Calendar from "metabase/components/Calendar";
 import moment from "moment";
 
@@ -20,7 +20,9 @@ const DateSingleWidget = ({ value, setValue, onClose }) => {
   );
 };
 
-DateSingleWidget.format = value =>
-  value ? moment(value).format("MMMM D, YYYY") : "";
+DateSingleWidget.format = value => {
+  const format = MetabaseSettings.get('site-locale') === 'ru' ? "DD.MM.YYYY" : "MMMM D, YYYY";
+  return value ? moment(value).format(format) : "";
+}
 
 export default DateSingleWidget;

@@ -9,12 +9,11 @@ import cx from "classnames";
 import { t } from "ttag";
 
 // translator: this is a "moment" format string (https://momentjs.com/docs/#/displaying/format/) It should include "Q" for the quarter number, and raw text can be escaped by brackets. For eample "[Quarter] Q" will be rendered as "Quarter 1" etc
-const QUARTER_FORMAT_STRING = t`[Q]Q`;
+const QUARTER_FORMAT_STRING = '[Q]Q';
 
 export default class DateQuarterYearWidget extends Component {
   constructor(props, context) {
     super(props, context);
-
     const initial = moment(this.props.value, "[Q]Q-YYYY");
     if (initial.isValid()) {
       this.state = {
