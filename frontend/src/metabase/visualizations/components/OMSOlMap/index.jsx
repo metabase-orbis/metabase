@@ -212,7 +212,8 @@ class OMSOlMapComponent extends React.Component {
         this.state = {
             baseMapId: 0,
             legend: null,
-            minLegend: false
+            minLegend: false,
+            extent: null
         }
         this.onMapClick = this.onMapClick.bind(this);
         this.yaSyncCenter = this.yaSyncCenter.bind(this);
@@ -274,11 +275,15 @@ class OMSOlMapComponent extends React.Component {
 
         const mapParams = settings[`${card.display}.mapParams`];
         const prevMapParams = prevProps.settings[`${card.display}.mapParams`];
+        if ((this.state.extent && this.state.extent !== prevState.extent) || 
+        (!this.state.extent && JSON.stringify(mapParams) !== JSON.stringify(prevMapParams))) {
+            this.fitToExtent();
+        }
+
         const mapZoomRange = settings[`${card.display}.zoom_range`];
         const prevMapZoomRange = prevProps.settings[`${card.display}.zoom_range`];
-        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
-            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
-            this.updateMapState();
+        if (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange)) {
+            this.updateZoomRange();
         }
         
         const mapUrl = settings[`${card.display}.base_maps_list`].mapUrl;
@@ -755,9 +760,7 @@ class OMSOlMapComponent extends React.Component {
         }
     }
 
-    updateMapState() {
-        this.fitToExtent();
-
+    updateZoomRange() {
         const { min_zoom, max_zoom } = defaultMapPositionConfig;
         const zoomRange = this.getZoomRange() || [];
         this._map.getView().setMinZoom(zoomRange[0] || min_zoom);
@@ -765,16 +768,16 @@ class OMSOlMapComponent extends React.Component {
     }
 
     fitToExtent() {
-        const extent = this._vectorLayer.getSource().getExtent();
-        const findFinite = extent.find(n => !isFinite(n));
-        if (findFinite) {
+        const { extent } = this.state;
+        const _ex = JSON.parse(extent);
+        if (!_ex || _ex.find(n => !isFinite(n)) {
             const mapParams = this.getMapParams();
             const projection = this._map.getView().getProjection().getCode();
             const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
             this._map.getView().setZoom(mapParams[0]);
             this._map.getView().setCenter(center);
         } else {
-            this._map.getView().fit(extent, {padding: [ 20, 20, 20, 20 ]});
+            this._map.getView().fit(_ex, {padding: [ 20, 20, 20, 20 ]});
         }
         
     }

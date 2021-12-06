@@ -245,7 +245,7 @@ class OMSPieMapComponent extends OMSOlMap {
     }
 
     updateMarkers() {
-        const { data, settings, isDashboard } = this.props;
+        const { data, settings } = this.props;
         const { rows, cols } = data;
         this._vectorLayer.getSource().clear();
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
@@ -270,9 +270,7 @@ class OMSPieMapComponent extends OMSOlMap {
 
             this._vectorLayer.getSource().addFeatures(features);
         }
-        if (isDashboard) {
-            this.fitToExtent()
-        }
+        this.setState({extent: JSON.stringify(this._vectorLayer.getSource().getExtent())});
     }
 
     updateLegend() {

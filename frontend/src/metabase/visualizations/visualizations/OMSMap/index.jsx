@@ -212,7 +212,7 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
     }
 
     updateMarkers() {
-        const { settings, series, isDashboard } = this.props;
+        const { settings, series } = this.props;
         this._vectorLayer.getSource().clear();
 
         const latitudeColumnName = settings['olmap.latitude_column'];
@@ -239,9 +239,7 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
                 this._vectorLayer.getSource().addFeature(pointFeature);
             }
         }
-        if (isDashboard) {
-            this.fitExtent();
-        }
+        this.setState({extent: JSON.stringify(this._vectorLayer.getSource().getExtent())});
     }
 }
 

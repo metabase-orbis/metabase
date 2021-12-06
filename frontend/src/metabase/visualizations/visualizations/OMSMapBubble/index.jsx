@@ -337,7 +337,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
     }
 
     updateMarkers() {
-        const { settings, series, data, isDashboard } = this.props;
+        const { settings, series, data } = this.props;
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         const idColumnIndex = _.findIndex(cols, isIdColumn);
@@ -390,9 +390,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
 
             this._vectorLayer.getSource().addFeatures(features);
         }
-        if (isDashboard) {
-            this.fitToExtent()
-        }
+        this.setState({extent: JSON.stringify(this._vectorLayer.getSource().getExtent())});
     }
 
     getIconSizeForValue(value) {
