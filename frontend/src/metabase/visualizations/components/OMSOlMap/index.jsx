@@ -126,7 +126,7 @@ class OMSOlMapComponent extends React.Component {
             },
             [`${id}.mapParams`]: {
                 section: 'Карта',
-                title: 'Позиция карты',
+                title: 'Позиция карты (при отсутствии объектов)',
                 widget: OMSInputGroup,
                 names: ['Масштаб', 'Координаты центра'],
                 types: ['number', 'number', 'number'],
@@ -220,7 +220,7 @@ class OMSOlMapComponent extends React.Component {
         this.gooSyncCenter = this.gooSyncCenter.bind(this);
         this.gooSyncSize = this.gooSyncSize.bind(this);
         this.gooSyncZoom = this.gooSyncZoom.bind(this);
-        this.updateMapState = this.updateMapState.bind(this);
+        this.fitToExtent = this.fitToExtent.bind(this);
     }
 
     componentDidMount() {
@@ -756,16 +756,27 @@ class OMSOlMapComponent extends React.Component {
     }
 
     updateMapState() {
-        const mapParams = this.getMapParams();
-        const projection = this._map.getView().getProjection().getCode();
-        const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
-        this._map.getView().setZoom(mapParams[0]);
-        this._map.getView().setCenter(center);
+        this.fitToExtent();
 
         const { min_zoom, max_zoom } = defaultMapPositionConfig;
         const zoomRange = this.getZoomRange() || [];
         this._map.getView().setMinZoom(zoomRange[0] || min_zoom);
         this._map.getView().setMaxZoom(zoomRange[1] || max_zoom);
+    }
+
+    fitToExtent() {
+        const extent = this._vectorLayer.getSource().getExtent();
+        const findFinite = extent.find(n => !isFinite(n));
+        if (findFinite) {
+            const mapParams = this.getMapParams();
+            const projection = this._map.getView().getProjection().getCode();
+            const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
+            this._map.getView().setZoom(mapParams[0]);
+            this._map.getView().setCenter(center);
+        } else {
+            this._map.getView().fit(extent, {padding: [ 20, 20, 20, 20 ]});
+        }
+        
     }
 
     renderBaseMapSwitcher() {
@@ -826,7 +837,7 @@ class OMSOlMapComponent extends React.Component {
                 onMouseLeave={() => onHoverChange && onHoverChange(null)}
             >
                 <div className={cx('ol-control', css.homeControl, {[css.mobileControl]: isMobile})}>
-                    <button onClick={this.updateMapState}><img src="app/assets/img/home.svg" /></button>
+                    <button onClick={this.fitToExtent}><img src="app/assets/img/home.svg" /></button>
                 </div>
                 <div className={css.yandexBase} ref={this._yaContainer}></div>
                 <div className={css.googleBase} ref={this._gooContainer}></div>

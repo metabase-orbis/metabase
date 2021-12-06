@@ -199,7 +199,7 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
     }
 
     updateMarkers() {
-        const { settings, series, data } = this.props;
+        const { settings, series, data, isDashboard } = this.props;
         const { rows, cols } = data;
         const geomColumnIndex = _.findIndex(cols, isGeomColumn);
         const idColumnIndex = _.findIndex(cols, isIdColumn);
@@ -249,6 +249,9 @@ class OMSMapCategoriesComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
             }
 
             this._vectorLayer.getSource().addFeatures(features);
+        }
+        if (isDashboard) {
+            this.fitToExtent()
         }
     }
 
