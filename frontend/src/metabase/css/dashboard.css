@@ -317,7 +317,7 @@
   } 
 }
 
-@media print and (max-width: 768px) {
+/* @media print and (max-width: 768px) {
   .DashboardGrid {
     height: auto!important;
   }
@@ -328,7 +328,7 @@
     width: auto!important;
     margin-bottom: 10px;
   }
-}
+} */
 
 @media print and (orientation: portrait) {
   html {
