@@ -12,7 +12,7 @@
 }
 
 .mobile-filters-wrapper > div {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .EmbedFrame-header,

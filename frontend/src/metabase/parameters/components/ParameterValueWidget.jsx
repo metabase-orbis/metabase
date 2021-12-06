@@ -222,6 +222,7 @@ export default class ParameterValueWidget extends Component {
           target={this.getTargetRef}
           // make sure the full date picker will expand to fit the dual calendars
           autoWidth={parameter.type === "date/all-options"}
+          targetOffsetX={15}
         >
           <Widget
             {...this.props}
