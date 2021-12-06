@@ -192,27 +192,6 @@ class OMSMapThematicMapComponent extends OMSOlMap {
             this.updateMarkers();
             this.updateLegend();
         }
-
-        const mapParams = this.props.settings['olmapthematicmap.mapParams'];
-        const prevMapParams = prevProps.settings['olmapthematicmap.mapParams'];
-        const mapZoomRange = this.props.settings['olmapthematicmap.zoom_range'];
-        const prevMapZoomRange = prevProps.settings['olmapthematicmap.zoom_range'];
-        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
-            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
-            this.updateMapState();
-        }
-
-        const mapUrl = this.props.settings['olmapthematicmap.base_maps_list'].mapUrl;
-        const prevMapUrl = prevProps.settings['olmapthematicmap.base_maps_list'].mapUrl;
-        if (mapUrl !== prevMapUrl) {
-            this.setBaseMaps();
-        }
-
-        const baseMap = this.props.settings['olmapthematicmap.default_base_map'];
-        const prevBaseMap = prevProps.settings['olmapthematicmap.default_base_map'];
-        if (baseMap !== prevBaseMap) {
-            this.setState({baseMapId: baseMap})
-        }
     }
 
     getObjectValue(featureData) {

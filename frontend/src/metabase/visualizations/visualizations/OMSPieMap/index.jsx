@@ -144,27 +144,6 @@ class OMSPieMapComponent extends OMSOlMap {
             this.updateMarkers();
             this.updateLegend();
         }
-
-        const mapParams = this.props.settings['omsmappie.mapParams'];
-        const prevMapParams = prevProps.settings['omsmappie.mapParams'];
-        const mapZoomRange = this.props.settings['omsmappie.zoom_range'];
-        const prevMapZoomRange = prevProps.settings['omsmappie.zoom_range'];
-        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
-            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
-            this.updateMapState();
-        }
-
-        const mapUrl = this.props.settings['omsmappie.base_maps_list'].mapUrl;
-        const prevMapUrl = prevProps.settings['omsmappie.base_maps_list'].mapUrl;
-        if (mapUrl !== prevMapUrl) {
-            this.setBaseMaps();
-        }
-
-        const baseMap = this.props.settings['omsmappie.default_base_map'];
-        const prevBaseMap = prevProps.settings['omsmappie.default_base_map'];
-        if (baseMap !== prevBaseMap) {
-            this.setState({baseMapId: baseMap})
-        }
     }
 
     geojsonToFeature(wkbBuff) {

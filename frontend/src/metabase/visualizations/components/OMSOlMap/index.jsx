@@ -260,14 +260,37 @@ class OMSOlMapComponent extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        const { settings, card, width, height } = this.props;
+
         const sameSize =
-            this.props.width === prevProps.width &&
-            this.props.height === prevProps.height;
+            width === prevProps.width &&
+            height === prevProps.height;
         if (!sameSize) {
             this._map.updateSize();
         }
         if (this.state.baseMapId !== prevState.baseMapId) {
             this.switchBaseMap();
+        }
+
+        const mapParams = settings[`${card.display}.mapParams`];
+        const prevMapParams = prevProps.settings[`${card.display}.mapParams`];
+        const mapZoomRange = settings[`${card.display}.zoom_range`];
+        const prevMapZoomRange = prevProps.settings[`${card.display}.zoom_range`];
+        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
+            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
+            this.updateMapState();
+        }
+        
+        const mapUrl = settings[`${card.display}.base_maps_list`].mapUrl;
+        const prevMapUrl = prevProps.settings[`${card.display}.base_maps_list`].mapUrl;
+        if (mapUrl !== prevMapUrl) {
+            this.setBaseMaps();
+        }
+       
+        const baseMap = settings[`${card.display}.default_base_map`];
+        const prevBaseMap = prevProps.settings[`${card.display}.default_base_map`];
+        if (baseMap !== prevBaseMap) {
+            this.setState({baseMapId: baseMap})
         }
     }
 

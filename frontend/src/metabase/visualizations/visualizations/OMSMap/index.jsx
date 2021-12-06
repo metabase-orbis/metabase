@@ -127,28 +127,6 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         if (prevProps.settings !== this.props.settings) {
             this.regenerateStyles();
         }
-
-        const mapParams = this.props.settings['olmap.mapParams'];
-        const prevMapParams = prevProps.settings['olmap.mapParams'];
-
-        const mapZoomRange = this.props.settings['olmap.zoom_range'];
-        const prevMapZoomRange = prevProps.settings['olmap.zoom_range'];
-        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
-            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
-            this.updateMapState();
-        }
-
-        const mapUrl = this.props.settings['olmap.base_maps_list'].mapUrl;
-        const prevMapUrl = prevProps.settings['olmap.base_maps_list'].mapUrl;
-        if (mapUrl !== prevMapUrl) {
-            this.setBaseMaps();
-        }
-       
-        const baseMap = this.props.settings['olmap.default_base_map'];
-        const prevBaseMap = prevProps.settings['olmap.default_base_map'];
-        if (baseMap !== prevBaseMap) {
-            this.setState({baseMapId: baseMap})
-        }
     }
 
     getObjectValue(featureData) {

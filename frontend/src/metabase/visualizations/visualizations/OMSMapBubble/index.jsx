@@ -191,27 +191,6 @@ class OMSMapBubbleComponent extends OMSOlMap {
             this.updateMarkers();
             this.updateLegend();
         }
-
-        const mapParams = this.props.settings['omsmapbubble.mapParams'];
-        const prevMapParams = prevProps.settings['omsmapbubble.mapParams'];
-        const mapZoomRange = this.props.settings['omsbubble.zoom_range'];
-        const prevMapZoomRange = prevProps.settings['omsbubble.zoom_range'];
-        if ((JSON.stringify(mapParams) !== JSON.stringify(prevMapParams)) || 
-            (JSON.stringify(mapZoomRange) !== JSON.stringify(prevMapZoomRange))) {
-            this.updateMapState();
-        }
-        
-        const mapUrl = this.props.settings['omsmapbubble.base_maps_list'].mapUrl;
-        const prevMapUrl = prevProps.settings['omsmapbubble.base_maps_list'].mapUrl;
-        if (mapUrl !== prevMapUrl) {
-            this.setBaseMaps();
-        }
-       
-        const baseMap = this.props.settings['omsmapbubble.default_base_map'];
-        const prevBaseMap = prevProps.settings['omsmapbubble.default_base_map'];
-        if (baseMap !== prevBaseMap) {
-            this.setState({baseMapId: baseMap})
-        }
     }
 
     getObjectValue(featureData) {
@@ -228,7 +207,6 @@ class OMSMapBubbleComponent extends OMSOlMap {
         const { series, settings } = this.props;
         if (!settings['omsmapbubble.show_legend']) {
             this.setState({ legend: null });
-            this.forceUpdate();
             return;
         }
         const columnName = settings['omsmapbubble.column'];
