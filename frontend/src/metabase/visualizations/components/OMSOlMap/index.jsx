@@ -770,7 +770,7 @@ class OMSOlMapComponent extends React.Component {
     fitToExtent() {
         const { extent } = this.state;
         const _ex = JSON.parse(extent);
-        if (!_ex || _ex.find(n => !isFinite(n)) {
+        if (!_ex || _ex.find(n => !isFinite(n))) {
             const mapParams = this.getMapParams();
             const projection = this._map.getView().getProjection().getCode();
             const center = transform([mapParams[1], mapParams[2]], 'EPSG:4326', projection);
