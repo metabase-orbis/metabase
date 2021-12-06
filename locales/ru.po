@@ -3877,7 +3877,7 @@ msgstr "Меньше чем"
 #: frontend/src/metabase/query_builder/components/filters/pickers/DatePicker.jsx:301
 #: frontend/src/metabase/query_builder/components/filters/pickers/TimePicker.jsx:99
 msgid "Between"
-msgstr "В диапазоне дат"
+msgstr "В диапазоне"
 
 #: frontend/src/metabase/lib/schema_metadata.js:404
 #: frontend/src/metabase/lib/schema_metadata.js:418
