@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { isMobileOnly } from "react-device-detect";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 
@@ -18,6 +19,8 @@ import {
   isEqualsOperator,
   isFuzzyOperator,
 } from "metabase/lib/schema_metadata";
+
+import css from './ParameterFieldWidget.css';
 
 const propTypes = {
   dashboard: PropTypes.object,
@@ -118,7 +121,12 @@ export default class ParameterFieldWidget extends Component {
       );
     } else {
       return (
-        <Popover hasArrow={false} onClose={() => focusChanged(false)} targetOffsetX={15}>
+        <Popover 
+          hasArrow={false} 
+          onClose={() => focusChanged(false)} 
+          targetOffsetX={15}
+          className={cx({[css.filterPopover]: isMobileOnly})}
+          >
           <div className={cx("relative", { p2: !isEqualsOp })}>
             {verboseName && !isEqualsOp && (
               <div className="text-bold mb1">{verboseName}...</div>

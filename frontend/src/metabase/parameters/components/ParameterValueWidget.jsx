@@ -1,6 +1,7 @@
 /* eslint "react/prop-types": "warn" */
 
 import React, { Component } from "react";
+import { isMobileOnly } from "react-device-detect";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { t } from "ttag";
@@ -223,6 +224,7 @@ export default class ParameterValueWidget extends Component {
           // make sure the full date picker will expand to fit the dual calendars
           autoWidth={parameter.type === "date/all-options"}
           targetOffsetX={15}
+          className={cx({[S.filterPopover]: isMobileOnly})}
         >
           <Widget
             {...this.props}

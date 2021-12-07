@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { isMobileOnly } from "react-device-detect";
 import cx from "classnames";
 
 import NumericInput from "metabase/components/NumericInput";
@@ -55,11 +56,12 @@ export default class RelativeDatePicker extends Component {
         <NumericInput
           className="mr2 input border-purple text-right"
           style={{
-            width: 65,
+            width: isMobileOnly ? 45 : 65,
             // needed to match Select's AdminSelect classes :-/
             fontSize: 14,
             fontWeight: 700,
             padding: 8,
+            marginRight: isMobileOnly ? 5 : ''
           }}
           data-ui-tag="relative-date-input"
           value={

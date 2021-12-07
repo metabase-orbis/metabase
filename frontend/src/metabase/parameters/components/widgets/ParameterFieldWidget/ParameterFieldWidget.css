@@ -1,0 +1,8 @@
+.PopoverContainer :local(.filterPopover) {
+  max-width: 320px;
+}
+
+.PopoverContainer :local(.filterPopover) .relative .PopoverBody--marginBottom .scroll-hide {
+    max-height: 180px !important;
+  }
+
