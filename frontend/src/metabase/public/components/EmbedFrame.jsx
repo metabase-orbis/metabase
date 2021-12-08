@@ -94,7 +94,7 @@ export default class EmbedFrame extends Component {
           {name || (parameters && parameters.length > 0) ? (
             <div className={cx("EmbedFrame-header flex align-center p1 sm-p2 lg-p3", {'mobile-embed-frame': isMobile})}>
               {name && !this.isIframe && (
-                <TitleAndDescription title={name} description={description} />
+                <TitleAndDescription title={name} description={description} className="dashboard-title"/>
               )}
               {parameters && parameters.length > 0 ? (
                 <div className={cx("flex ml-auto", {"mobile-filters-wrapper": isMobile})}>

@@ -2,7 +2,12 @@
   max-width: 320px;
 }
 
+.PopoverContainer :local(.filterPopover) .relative .PopoverBody--marginBottom {
+  max-width: 290px !important;
+  min-width: 290px !important;
+}
+
 .PopoverContainer :local(.filterPopover) .relative .PopoverBody--marginBottom .scroll-hide {
-    max-height: 180px !important;
-  }
+  max-height: 180px !important;
+}
 
