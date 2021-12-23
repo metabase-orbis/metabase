@@ -5,7 +5,7 @@ import ChartSettingColorPicker from "./ChartSettingColorPicker";
 
 export default class ChartSettingColorsPicker extends Component {
   render() {
-    const { value, onChange, seriesTitles } = this.props;
+    const { value, onChange, seriesTitles, fancy } = this.props;
     return (
       <div>
         {seriesTitles.map((title, index) => (
@@ -19,6 +19,7 @@ export default class ChartSettingColorsPicker extends Component {
             }
             title={title}
             value={value[title]}
+            fancy={fancy}
           />
         ))}
       </div>

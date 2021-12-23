@@ -123,6 +123,7 @@ export default class Gauge extends Component {
           { min: value, max: value * 2, color: color("success"), label: "" },
         ];
       },
+      props: {fancy: true},
       widget: ChartSettingGaugeSegments,
       persistDefault: true,
     },

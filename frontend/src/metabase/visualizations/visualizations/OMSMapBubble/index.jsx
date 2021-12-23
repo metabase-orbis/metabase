@@ -139,6 +139,7 @@ class OMSMapBubbleComponent extends OMSOlMap {
             title: 'Цвет обводки',
             widget: "color",
             default: '#509EE3',
+            props: { fancy: true }
         },
         "omsmapbubble.icon_border_size": {
             section: 'Обводка',

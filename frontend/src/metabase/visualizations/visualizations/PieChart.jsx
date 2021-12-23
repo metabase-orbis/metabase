@@ -140,6 +140,7 @@ export default class PieChart extends Component {
           : [],
       getProps: (series, settings) => ({
         seriesTitles: settings["pie._dimensionValues"] || [],
+        fancy: true
       }),
       getDisabled: (series, settings) => !settings["pie._dimensionValues"],
       readDependencies: ["pie._dimensionValues"],

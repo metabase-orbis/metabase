@@ -21,6 +21,7 @@ export default class ChartNestedSettingSeries extends React.Component {
       object,
       allComputedSettings,
       settings,
+      fancy
     } = this.props;
     const objectKey = object && getObjectKey(object);
     const isSelected = single => objectKey === getObjectKey(single);
@@ -47,6 +48,7 @@ export default class ChartNestedSettingSeries extends React.Component {
                     onChange={value =>
                       onChangeObjectSettings(single, { color: value })
                     }
+                    fancy={fancy}
                   />
                   <input
                     className="input flex-full ml1 align-self-stretch"

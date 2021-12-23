@@ -154,6 +154,7 @@ export function seriesSetting({
       component: ChartNestedSettingSeries,
       readDependencies: [colorSettingId, ...readDependencies],
       noPadding: true,
+      props: { fancy: true },
       ...def,
     }),
     // colors must be computed as a whole rather than individually

@@ -11,7 +11,7 @@ import Button from "metabase/components/Button";
 import Icon from "metabase/components/Icon";
 import NumericInput from "metabase/components/NumericInput";
 
-const ChartSettingGaugeSegments = ({ value: segments, onChange }) => {
+const ChartSettingGaugeSegments = ({ value: segments, onChange, ...props }) => {
   const onChangeProperty = (index, property, value) =>
     onChange([
       ...segments.slice(0, index),
@@ -39,6 +39,7 @@ const ChartSettingGaugeSegments = ({ value: segments, onChange }) => {
                     triggerSize={28}
                     padding={2}
                     colors={getColorPalette()}
+                    fancy={props.fancy}
                   />
                 </td>
                 <td>

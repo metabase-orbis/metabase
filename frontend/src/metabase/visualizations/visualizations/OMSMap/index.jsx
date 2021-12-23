@@ -57,7 +57,8 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         "olmap.icon_color": {
             section: 'Иконка',
             title: 'Цвет иконки',
-            widget: "color"
+            widget: "color",
+            props: { fancy: true }
         },
         "olmap.icon_size": {
             section: 'Иконка',
@@ -99,7 +100,8 @@ class OMSMapComponent extends OMSOlMap<IOMSMapProps, IOMSMapState> {
         "olmap.icon_border_color": {
             section: 'Обводка',
             title: 'Цвет обводки',
-            widget: "color"
+            widget: "color",
+            props: { fancy: true }
         },
         "olmap.icon_border_size": {
             section: 'Обводка',

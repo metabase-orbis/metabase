@@ -21,13 +21,13 @@ export default class WaterfallChart extends LineAreaBarChart {
     ...GRAPH_AXIS_SETTINGS,
     "waterfall.increase_color": {
       section: t`Display`,
-      props: { title: t`Increase color` },
+      props: { title: t`Increase color`, fancy: true },
       widget: "color",
       default: color("accent1"),
     },
     "waterfall.decrease_color": {
       section: t`Display`,
-      props: { title: t`Decrease color` },
+      props: { title: t`Decrease color`, fancy: true },
       widget: "color",
       default: color("accent3"),
     },
@@ -39,7 +39,7 @@ export default class WaterfallChart extends LineAreaBarChart {
     },
     "waterfall.total_color": {
       section: t`Display`,
-      props: { title: t`Total color` },
+      props: { title: t`Total color`, fancy: true },
       widget: "color",
       default: color("text-dark"),
       getHidden: (series, vizSettings) =>
